@@ -10,6 +10,8 @@ namespace asterid {
 	
 	struct fifo_mutex final {
 		
+		// NOTE -- should be assumed to not work beyond 256 threads
+		
 		fifo_mutex() = default;
 		
 		inline void lock() {

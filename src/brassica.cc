@@ -13,4 +13,5 @@ struct brassica_test_s {
 void brassica_test () {
 	brassica_test_s test;
 	test.testm4.scale(5);
+	test.testm4 = {};
 };

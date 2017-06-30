@@ -5,8 +5,6 @@
 #include <vector>
 #include <cstdint>
 
-#define VAS_HISTORY_SIZE 8
-
 namespace asterid {
 	
 	std::string strf( char const * fmt, ... ) noexcept;

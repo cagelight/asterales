@@ -2,6 +2,8 @@
 
 #include <cstdarg>
 
+#define VAS_HISTORY_SIZE 8
+
 static constexpr size_t strf_startlen = 256;
 std::string asterid::strf(char const * fmt, ...) noexcept {
 	
