@@ -7,10 +7,12 @@
 
 namespace asterid {
 	
+	static std::string const empty_str {};
+	
 	std::string strf( char const * fmt, ... ) noexcept;
 	char const * vas( char const * fmt, ... ) noexcept;
 	
 }
 
-#define here asterid::vas("%s, in %s, line %u", __PRETTY_FUNCTION__, __FILE__,  __LINE__)
-#define herestr asterid::strf("%s, in %s, line %u", __PRETTY_FUNCTION__, __FILE__,  __LINE__)
+#define _as_here asterid::vas("%s, in %s, line %u", __PRETTY_FUNCTION__, __FILE__,  __LINE__)
+#define _as_herestr asterid::strf("%s, in %s, line %u", __PRETTY_FUNCTION__, __FILE__,  __LINE__)

@@ -15,9 +15,9 @@ namespace asterid {
 		fifo_mutex() = default;
 		
 		inline void lock() {
-			uint_fast8_t my_number = ticket_counter++;
 			std::unique_lock<std::mutex> lk {mut};
-			cv.wait(lk, [&](){return my_number != now_serving;});
+			uint_fast8_t my_number = ticket_counter++;
+			if (my_number != now_serving) cv.wait(lk, [&](){return my_number != now_serving;});
 		}
 		
 		inline void unlock() {
@@ -34,8 +34,19 @@ namespace asterid {
 		std::atomic_uint_fast8_t now_serving;
 	};
 	
-	struct rw_mutex final {
+	struct spinlock final {
 		
+		inline void lock() { while (accessor.test_and_set()) __asm volatile ("pause" ::: "memory"); }
+		inline bool try_lock() { return !accessor.test_and_set(); }
+		inline void unlock() { accessor.clear(); }
+		
+	private:
+		
+		std::atomic_flag accessor {false};
+	};
+	
+	struct rw_mutex final {
+
 		rw_mutex() = default;
 		
 		inline void read_access() {
