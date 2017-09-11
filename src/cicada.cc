@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
+#include <sys/epoll.h>
 
 using namespace asterid::cicada;
 
@@ -18,6 +19,8 @@ static constexpr int enable = 1;
 static constexpr int disable = 0;
 
 #define TMPBUF_SIZE 512
+
+#define EPOLLEVT reinterpret_cast<epoll_event *>(epoll_evt)
 
 socket::~socket() {
 	if (FD != -1) {
@@ -171,6 +174,11 @@ void listener::accept() {
 }
 
 server::server(uint16_t port, bool create_master_thread, unsigned int workers_num) : li(port, [this](connection && con){ this->accept_connection(std::forward<connection>(con)); }) {
+	epoll_obj = epoll_create(1);
+	epoll_evt = new epoll_event {};
+	EPOLLEVT->data.fd = li.FD;
+	EPOLLEVT->events = EPOLLIN;
+	epoll_ctl(epoll_obj, EPOLL_CTL_ADD, li.FD, EPOLLEVT);
 	for (unsigned int i = 0; i < workers_num; i++) workers.push_back( new std::thread { &server::worker_run, this } );
 	if (create_master_thread) master_thread = new std::thread { [this](){ while (run_sem) master_loop(); } };
 }
@@ -187,6 +195,8 @@ server::~server() {
 		delete worker;
 	}
 	if (pib) delete pib;
+	close(epoll_obj);
+	if (EPOLLEVT) delete EPOLLEVT;
 }
 
 void server::master(std::function<bool()> pred) {
@@ -194,12 +204,14 @@ void server::master(std::function<bool()> pred) {
 }
 
 void server::accept_connection(connection && con) {
-	instances.emplace_front(new instance { std::forward<connection>(con), pib->instantiate() });
+	instances.emplace_front(new instance { *this, std::forward<connection>(con), pib->instantiate() });
 }
 
 void server::master_loop() {
+	epoll_event event {};
+	epoll_wait(epoll_obj, &event, 1, 100);
 	li.accept();
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	
 	w2m_lock.lock();
 	while (!w2m_queue.empty()) {
 		auto msg = w2m_queue.front();
@@ -208,7 +220,6 @@ void server::master_loop() {
 		std::shared_ptr<instance> inst = msg.i.lock();
 		if (!inst) continue;
 		if (msg.sig.m & signal::mask::terminate) {
-			inst->use_lock.lock();
 			instances.remove(inst);
 			inst.reset();
 		}
@@ -225,7 +236,7 @@ void server::worker_run() {
 	while (run_sem) {
 		{
 			std::unique_lock<std::mutex> lk {m2w_cv_mut};
-			m2w_cv.wait_for(lk, std::chrono::milliseconds(5000));
+			m2w_cv.wait_for(lk, std::chrono::milliseconds(1000));
 		}
 		
 		if (!run_sem) return;
@@ -253,6 +264,11 @@ void server::worker_run() {
 				sig.m |= signal::mask::terminate;
 			}
 			
+			int flags = 0;
+			if (sig.m & signal::mask::wait_for_read) flags |= EPOLLIN;
+			if (sig.m & signal::mask::wait_for_write) flags |= EPOLLOUT;
+			inst->update_epoll(flags);
+			
 			inst->use_lock.unlock();
 			
 			w2m_lock.lock();
@@ -262,4 +278,18 @@ void server::worker_run() {
 	}
 }
 
-server::instance::instance(connection && con, protocol * proto) : con(std::forward<connection>(con)), proto(proto) {}
+server::instance::instance(server const & parent, connection && con, protocol * proto) : parent(parent), con(std::forward<connection>(con)), proto(proto) {
+	epoll_evt = new epoll_event {};
+	EPOLLEVT->data.fd = this->con.FD;
+	EPOLLEVT->events = EPOLLIN;
+	epoll_ctl(parent.epoll_obj, EPOLL_CTL_ADD, this->con.FD, EPOLLEVT);
+}
+server::instance::~instance() {
+	epoll_ctl(parent.epoll_obj, EPOLL_CTL_DEL, con.FD, EPOLLEVT);
+	if (EPOLLEVT) delete EPOLLEVT;
+}
+
+void server::instance::update_epoll(int flags) {
+	EPOLLEVT->events = flags;
+	epoll_ctl(parent.epoll_obj, EPOLL_CTL_MOD, con.FD, EPOLLEVT);
+}

@@ -137,10 +137,14 @@ namespace asterid::cicada {
 		};
 		
 		struct instance {
-			instance(connection && con, protocol * proto);
+			instance(server const & parent, connection && con, protocol * proto);
+			~instance();
+			server const & parent;
 			connection con;
 			protocol * proto;
 			asterid::spinlock use_lock;
+			void * epoll_evt;
+			void update_epoll(int flags);
 		};
 		
 		listener li;
@@ -170,6 +174,9 @@ namespace asterid::cicada {
 		
 		std::queue<w2m_msg> w2m_queue;
 		asterid::spinlock w2m_lock;
+		
+		int epoll_obj;
+		void * epoll_evt;
 		
 		void accept_connection(connection &&);
 		void master_loop();

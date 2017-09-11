@@ -3,6 +3,10 @@
 #include "asterid/synchro.hh"
 #include "asterid/time.hh"
 #include "asterid/bspacker.hh"
+#include "asterid/linq.hh"
+#include "asterid/json.hh"
+
+#include <vector>
 
 using namespace asterid;
 using namespace asterid::brassica;
@@ -19,12 +23,20 @@ void brassica_test () {
 	brassica_test_s test;
 	//test.testm4.scale(5);
 	test.testm4 = {};
-};
+}
 
 void istring_test () {
 	istring str {"TEST"};
 	std::string str2 {"TEST"};
-	
-	istring_convertible conv {str};
-	istring_convertible conv2 {str2};
+}
+
+void linq_test () {
+	std::vector<int> test1 {1, 2, 3, 4, 5, 6, 7, 8, 9};
+	//asterid::linq<std::vector<int>> linq1 {test1};
+}
+
+void json_test() {
+	json::object test1 {};
+	test1 = 5;
+	test1.serialize();
 }

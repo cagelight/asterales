@@ -35,19 +35,6 @@ namespace asterid {
 
 	typedef std::basic_string<char, insensitive_char_traits> istring;
 	typedef std::basic_string_view<istring> istring_view;
-	
-	template <typename T>
-	struct istring_convertible {
-		
-		istring_convertible() = delete;
-		inline istring_convertible(istring && str) : istr(std::forward<istring>(str)) {}
-		inline istring_convertible(T const & str) : istr(str.begin(), str.end()) {}
-		
-		inline istring && get() { return std::move(istr); }
-		
-	private:
-		istring istr;
-	};
 }
 
 namespace std {

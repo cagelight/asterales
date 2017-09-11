@@ -25,6 +25,7 @@ def options(opt):
 def configure(ctx):
 	ctx.load("g++")
 	ctx.check(features='c cprogram', lib='pthread', uselib_store='PTHREAD')
+	ctx.check(features='c cprogram', lib='icuuc', uselib_store='ICU')
 	btup = ctx.options.build_type.upper()
 	if btup in ["DEBUG", "NATIVE", "RELEASE"]:
 		Logs.pprint("PINK", "Setting up environment for known build type: " + btup)
@@ -46,6 +47,6 @@ def build(bld):
 		features = "cxx cxxshlib",
 		target = coreprog_name,
 		source = bld_files,
-		uselib = ['PTHREAD'],
+		uselib = ['PTHREAD', 'ICU'],
 		includes = [os.path.join(top, 'src')],
 	)
