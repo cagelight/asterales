@@ -235,9 +235,9 @@ static std::string serialize_string(json::str_t const & v) {
 		case '\r': r << "\\r"; break;
 		case '\t': r << "\\t"; break;
 		default:
-           if (c < 32)
-                r << "\\u" << std::hex << std::setw(4) << std::setfill('0') << static_cast<int>(c);
-            else r << c;
+			if (c < 32)
+				r << "\\u" << std::hex << std::setw(4) << std::setfill('0') << static_cast<int>(c);
+			else r << c;
 		break;
 	}
 	r << "\"";
@@ -293,4 +293,242 @@ std::string json::object::serialize() const {
 std::ostream & operator << (std::ostream & out, asterid::json::object const & t) {
 	out << t.serialize();
 	return out;
+}
+
+//================================================================================================
+//------------------------------------------------------------------------------------------------
+//================================================================================================
+
+typedef std::string::const_iterator sci;
+
+static bool parse_skip_irrelevant(sci & b, sci const & e) {
+	for (;b!=e;b++) switch(*b) {
+		case '\n':
+		case '\r':
+		case ' ':
+		case ',':
+		case ':':
+			continue;
+		default:
+			return true;
+	}
+	return false;
+}
+
+static json::object parse_json_bool(sci & b, sci const & e) {
+	if (*b == 't' &&
+		b + 1 != e && *(b + 1) == 'r' &&
+		b + 2 != e && *(b + 2) == 'u' &&
+		b + 3 != e && *(b + 3) == 'e'
+	) {
+		b += 4;
+		return {true};
+	} else if (*b == 'f' &&
+		b + 1 != e && *(b + 1) == 'a' &&
+		b + 2 != e && *(b + 2) == 'l' &&
+		b + 3 != e && *(b + 3) == 's' &&
+		b + 4 != e && *(b + 4) == 'e'
+	) {
+		b += 5;
+		return {false};
+	} else throw json::exception::parse {};
+}
+
+static json::object parse_json_numerical(sci & b, sci const & e) {
+	sci i = b;
+	bool is_float = false;
+	for (;b!=e;b++) {
+		switch(*b) {
+			case '.':
+			case 'e':
+				is_float = true;
+				[[fallthrough]];
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+			case '+':
+			case '-':
+				continue;;
+			default:
+				break;
+		}
+		break;
+	}
+	
+	if (i == b) return json::null;
+	std::string num_str {i, b};
+	if (is_float) {
+		return json::object(strtod(num_str.c_str(), nullptr));
+	} else {
+		return json::object(strtoll(num_str.c_str(), nullptr, 10));
+	}
+}
+
+static json::object parse_json_string(sci & b, sci const & e) {
+	if (*b != '\"') throw json::exception::parse {};
+	b++;
+	std::string str {};
+	
+	bool is_escaped = false;
+
+	for (;b!=e;b++) {
+		switch (*b) {
+			case 'b':
+				if (is_escaped) {
+					is_escaped = false;
+					str += '\b';
+				} else str += 'b';
+				continue;
+			case 'f':
+				if (is_escaped) {
+					is_escaped = false;
+					str += '\f';
+				} else str += 'f';
+				continue;
+			case 'n':
+				if (is_escaped) {
+					is_escaped = false;
+					str += '\n';
+				} else str += 'n';
+				continue;
+			case 'r':
+				if (is_escaped) {
+					is_escaped = false;
+					str += '\r';
+				} else str += 'r';
+				continue;
+			case 't':
+				if (is_escaped) {
+					is_escaped = false;
+					str += '\t';
+				} else str += 't';
+				continue;
+			case '\"':
+				if (is_escaped) {
+					is_escaped = false;
+					str += '\"';
+				} else break;
+				continue;
+			case '\\':
+				if (is_escaped) {
+					is_escaped = false;
+					str += '\\';
+				} else is_escaped = true;
+				continue;;
+			default:
+				str += *b;
+				continue;
+		}
+		break;
+	}
+	if (b == e) throw json::exception::parse {};
+	b++;
+	return json::object {str};
+}
+
+static json::object parse_json_object(sci & b, sci const & e);
+
+static json::object parse_json_array(sci & b, sci const & e) {
+	if (*b != '[') throw json::exception::parse {};
+	b++;
+	json::object obj {json::object::type::array};
+	while (b!=e) {
+		if (!parse_skip_irrelevant(b, e)) throw json::exception::parse {};
+		if (*b == ']') {
+			b++;
+			return obj;
+		} else obj.array().push_back(parse_json_object(b, e));
+	}
+	throw json::exception::parse {};
+}
+
+static json::object parse_json_map(sci & b, sci const & e) {
+	if (*b != '{') throw json::exception::parse {};
+	b++;
+	json::object obj {json::object::type::map};
+	while (b!=e) {
+		if (!parse_skip_irrelevant(b, e)) throw json::exception::parse {};
+		if (*b == '}') {
+			b++;
+			return obj;
+		}
+		json::object key = parse_json_string(b, e);
+		if (!parse_skip_irrelevant(b, e)) throw json::exception::parse {};
+		obj[key.string()] = parse_json_object(b, e);
+	}
+	throw json::exception::parse {};
+}
+
+static json::object parse_json_object(sci & b, sci const & e) {
+	json::object obj;
+	for (;b!=e;b++) switch(*b) {
+		case 't':
+		case 'f':
+			return parse_json_bool(b, e);
+		case '0':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+		case '+':
+		case '-':
+			return parse_json_numerical(b, e);
+		case '\"':
+			return parse_json_string(b, e);
+		case '[':
+			return parse_json_array(b, e);
+		case '{':
+			return parse_json_map(b, e);
+		case '\n':
+		case '\r':
+		case ' ':
+			continue;
+		default:
+			throw json::exception::parse {};
+	}
+	return obj;
+}
+
+json::object json::object::parse(std::string const & str) {
+	sci b = str.begin();
+	sci e = str.end();
+	return parse_json_object(b, e);
+}
+
+//================================================================================================
+//------------------------------------------------------------------------------------------------
+//================================================================================================
+
+bool json::object::operator == (object const & other) {
+	if (t_ != other.t_) return false;
+	switch (t_) {
+		case type::none:
+			return true;
+		case type::boolean:
+			return data.boolean == other.data.boolean;
+		case type::integer:
+			return data.num_int == other.data.num_int;
+		case type::real:
+			return data.num_real == other.data.num_real;
+		case type::string:
+			return *data.str == *other.data.str;
+		case type::array:
+			return *data.ary == *other.data.ary;
+		case type::map:
+			return *data.map == *other.data.map;
+		default:
+			return false;
+	}
 }

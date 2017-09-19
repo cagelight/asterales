@@ -36,12 +36,12 @@ namespace asterid {
 		inline const_iterator begin () const { return buf_.begin(); }
 		inline const_iterator end () const { return buf_.end(); }
 		inline iterator insert(const_iterator P, const_iterator A, const_iterator B) { return buf_.insert(P, A, B); }
-		inline std::string to_string() { return std::string { reinterpret_cast<char const *>(data()), size() }; }
+		inline std::string to_string() const { return std::string { reinterpret_cast<char const *>(data()), size() }; }
 		
 		inline size_t transfer_to(byte_buffer & other, size_t cnt = SIZE_MAX) {
 			if (cnt > size()) cnt = size();
 			if (cnt) {
-				other.insert(other.end(), begin(), begin() + cnt + 1);
+				other.insert(other.end(), begin(), begin() + cnt);
 				pop(cnt);
 			}
 			return cnt;

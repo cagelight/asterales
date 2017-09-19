@@ -8,13 +8,20 @@
 #define BRASSICA_INPUT_SANITIZING 1
 #endif
 
+#include <cstdint>
 #include <ctgmath>
+#include <numeric>
+#include <vector>
 
 #if BRASSICA_PRINT_FUNCTIONS == 1
 #include <string>
 #endif
 
 namespace asterid::brassica {
+	
+	typedef int_fast64_t work_int_t;
+	typedef uint_fast64_t work_uint_t;
+	typedef long double work_float_t;
 	
 	template <typename T> T constexpr pi = static_cast<T>(3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701938521105559644622948954930381964428810975665933446128475648233786783165271201909145649L);
 	template <typename T> T deg2rad(T const & v) { return v * pi<T> / static_cast<T>(180); }
@@ -26,7 +33,7 @@ namespace asterid::brassica {
 	template <typename T> T & max(T & A, T & B) { return A > B ? A : B; }
 	template <typename T> void clamp(T & V, T const & MIN, T const & MAX) { if (V > MAX) V = MAX; else if (V < MIN) V = MIN; }
 	template <typename T> T clamped(T const & V, T const & MIN, T const & MAX) { if (V > MAX) return MAX; else if (V < MIN) return MIN; else return V; }
-	
+
 //================================================================================================
 //------------------------------------------------------------------------------------------------
 //================================================================================================
@@ -272,6 +279,7 @@ namespace asterid::brassica {
 		vec4_t(vec4_t const &) = default;
 		vec4_t(vec4_t &&) = default;
 		template <typename U> vec4_t(vec4_t<U> const & other) { data[0] = other.data[0]; data[1] = other.data[1]; data[2] = other.data[2]; data[3] = other.data[3]; }
+		vec4_t(vec3_t<T> const & v, T w) : data {v.data[0], v.data[1], v.data[2], w} {}
 		
 		static inline T dot(vec4_t<T> const & A, vec4_t<T> const & B) {
 			return A.data[0] * B.data[0] + A.data[1] * B.data[1] + A.data[2] * B.data[2] + A.data[3] * B.data[3];
@@ -1035,7 +1043,40 @@ namespace asterid::brassica {
 //================================================================================================
 //------------------------------------------------------------------------------------------------
 //================================================================================================
+
+	template <typename T> struct pascal_triangle {
+		std::vector<std::vector<T>> rows {{1}};
+		
+		pascal_triangle() = default;
+		inline pascal_triangle(size_t init) { for (size_t i = 1; i < init + 1; i++) gen_row(); }
+		
+		std::vector<T> const & row(size_t row) {
+			for (size_t i = rows.size(); i < row + 1; i++) gen_row();
+			return rows[row];
+		}
+		
+	protected:
+		void gen_row() {
+			auto & last_row = rows.back();
+			std::vector<T> new_row {static_cast<T>(1)};
+			new_row.resize(rows.size());
+			for (size_t j = 1; j < rows.size(); j++) new_row[j] = last_row[j-1] + last_row[j];
+			new_row.push_back(static_cast<T>(1));
+			rows.push_back(new_row);
+		}
+	};
 	
+	template <typename T, typename U> std::vector<T> sum_normalize(std::vector<U> const & vec) {
+		work_uint_t sum = std::accumulate<std::vector<U>::const_iterator, work_uint_t>(vec.begin(), vec.end(), 0);
+		std::vector<T> ret {};
+		for (T const & v : vec) { ret.push_back(v / sum); }
+		return ret;
+	}
+
+//================================================================================================
+//------------------------------------------------------------------------------------------------
+//================================================================================================
+
 }
 
 #if BRASSICA_PRINT_FUNCTIONS == 1

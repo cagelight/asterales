@@ -15,6 +15,14 @@ namespace asterid {
 	
 	namespace strop {
 		
+		template <typename T, typename V = std::vector<T>> V subset(V const & vec, size_t from, ssize_t to) {
+			return V { vec.begin() + from, to < 0 ? vec.end() + to : vec.begin() + to };
+		}
+		
+		template <typename T, typename V = std::vector<T>> V subset_cont(V const & vec, size_t from, size_t count) {
+			return V { vec.begin() + from, vec.begin() + from + count };
+		}
+		
 		template <typename T, typename TT = decltype(T::value_type)> void remove_all(T & v, TT const & tv) {
 			if (!v.size()) return;
 			v.erase(std::remove(v.begin(), v.end(), tv), v.end());
@@ -145,6 +153,15 @@ namespace asterid {
 				continue;
 			}
 			return false;
+		}
+		
+		template <typename T> bool starts_width(T const & string_to_search, T const & string_to_search_for) {
+			if (string_to_search.size() < string_to_search_for.size()) return false;
+			typename T::const_iterator a_i = string_to_search.begin(), b_i = string_to_search_for.begin();
+			for (size_t i = 0; i < string_to_search_for.size(); i++) {
+				if (*a_i++ != *b_i++) return false;
+			}
+			return true;
 		}
 		
 	}

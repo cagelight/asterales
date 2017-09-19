@@ -16,6 +16,10 @@ namespace asterid::json {
 	typedef std::vector<object> ary_t;
 	typedef std::unordered_map<str_t, object> map_t;
 	
+	namespace exception {
+		struct parse {};
+	}
+	
 	struct object {
 		enum struct type : uint_fast8_t {
 			none,
@@ -76,6 +80,10 @@ namespace asterid::json {
 		
 		inline bool is_null() const { return t_ == type::none; }
 		inline operator bool () const { return is_null(); }
+		
+		static object parse(std::string const &);
+		
+		bool operator == (object const & other);
 		
 	private:
 		type t_ = type::none;

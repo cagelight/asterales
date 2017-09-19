@@ -261,6 +261,7 @@ void server::worker_run() {
 			try {
 				sig = inst->proto->ready(inst->con, d);
 			} catch (...) {
+				printf("WARNING: a connection was terminated after catching an uncaught exception\n");
 				sig.m |= signal::mask::terminate;
 			}
 			
