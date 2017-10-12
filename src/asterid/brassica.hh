@@ -68,6 +68,7 @@ namespace asterid::brassica {
 		inline T const & height() const { return data[1]; }
 		
 		vec2_t() = default;
+		vec2_t(T v) : data {v, v} {}
 		vec2_t(T x, T y) : data {x, y} {}
 		vec2_t(vec2_t const &) = default;
 		vec2_t(vec2_t &&) = default;

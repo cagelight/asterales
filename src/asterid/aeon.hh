@@ -6,7 +6,9 @@
 #include <vector>
 #include <unordered_map>
 
-namespace asterid::json {
+#include "buffer_assembly.hh"
+
+namespace asterid::aeon {
 	
 	struct object;
 	
@@ -76,8 +78,6 @@ namespace asterid::json {
 		inline object & operator [] (char const * str) { return operator [] (std::string{str}); }
 		inline object const & operator [] (char const * str) const { return operator [] (std::string{str}); }
 		
-		std::string serialize() const;
-		
 		inline bool is_null() const { return t_ == type::none; }
 		inline operator bool () const { return is_null(); }
 		
@@ -89,7 +89,12 @@ namespace asterid::json {
 		inline bool is_array() const { return t_ == type::array; }
 		inline bool is_map() const { return t_ == type::map; }
 		
-		static object parse(std::string const &);
+		std::string serialize_text() const;
+		buffer_assembly serialize_binary() const;
+		void serialize_binary(buffer_assembly &) const;
+		
+		static object parse_text(std::string const &);
+		static object parse_binary(buffer_assembly & buf);
 		
 		bool operator == (object const & other);
 		
@@ -105,6 +110,9 @@ namespace asterid::json {
 		} data;
 	};
 	
+	inline object parse_text(std::string const & text) { return object::parse_text(text); }
+	inline object parse_binary(buffer_assembly & buf) { return object::parse_binary(buf); }
+	
 	inline object string() { return object::type::string; }
 	inline object array() { return object::type::array; }
 	inline object map() { return object::type::map; }
@@ -112,10 +120,10 @@ namespace asterid::json {
 	extern object const & null;
 };
 
-std::ostream & operator << (std::ostream & out, asterid::json::object const & t);
+std::ostream & operator << (std::ostream & out, asterid::aeon::object const & t);
 
 namespace std {
-	inline string to_string(asterid::json::object const & json) {
-		return json.serialize();
+	inline string to_string(asterid::aeon::object const & aeon) {
+		return aeon.serialize_text();
 	}
 }

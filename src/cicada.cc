@@ -40,7 +40,7 @@ struct sendfile_helper::private_data {
 		fstat(fd, &finfo);
 		if (!S_ISREG(finfo.st_mode)) throw exception::sendfile_notfile {};
 		if (offset > finfo.st_size) throw exception::sendfile_badoffset {};
-		if (offset + count > finfo.st_size) count = finfo.st_size - offset;
+		if (offset + count > static_cast<size_t>(finfo.st_size)) count = finfo.st_size - offset;
 	}
 };
 
@@ -80,7 +80,7 @@ ssize_t connection::read(char * buf, size_t buf_len) {
 	} else return e;
 }
 
-ssize_t connection::read(byte_buffer & buf, size_t cnt) {
+ssize_t connection::read(buffer_assembly & buf, size_t cnt) {
 	char tmpbuf [TMPBUF_SIZE];
 	ssize_t ret = 0;
 	while (true) {
@@ -90,7 +90,7 @@ ssize_t connection::read(byte_buffer & buf, size_t cnt) {
 		if (e == 0) break;
 		ret += e;
 		cnt -= e;
-		buf << byte_buffer { tmpbuf, static_cast<size_t>(e) };
+		buf.write(tmpbuf, e);
 		if (static_cast<size_t>(e) < readnum) break;
 	}
 	return ret;
@@ -108,19 +108,19 @@ ssize_t connection::write(char const * buf, size_t buf_len) {
 	} else return e;
 }
 
-ssize_t connection::write(byte_buffer const & buf, size_t cnt) {
+ssize_t connection::write(buffer_assembly const & buf, size_t cnt) {
 	if (cnt > buf.size()) cnt = buf.size();
 	if (!cnt) return 0;
 	return connection::write(reinterpret_cast<char const *>(buf.data()), cnt);
 }
 
-ssize_t connection::write_consume(byte_buffer & buf, size_t cnt) {
+ssize_t connection::write_consume(buffer_assembly & buf, size_t cnt) {
 	if (cnt > buf.size()) cnt = buf.size();
 	if (!cnt) return 0;
 	ssize_t e = connection::write(reinterpret_cast<char const *>(buf.data()), cnt);
 	if (e <= 0) return e;
 	if (static_cast<size_t>(e) == buf.size()) buf.clear();
-	else buf = { buf.begin() + e, buf.end() };
+	else buf.discard(e);
 	return e;
 }
 

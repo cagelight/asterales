@@ -37,6 +37,10 @@ namespace asterid {
 			return false;
 		}
 		
+		// ================================
+		// separate on sequence
+		// ================================
+		
 		template <typename T, typename V = std::vector<T>, typename Ti = typename T::const_iterator> V separate (Ti const & a_b, Ti const & a_e, Ti const & b_b, Ti const & b_e, size_t num_sep = SIZE_MAX) {
 			V r {};
 			if (a_b == a_e || b_b == b_e) return r;
@@ -54,7 +58,6 @@ namespace asterid {
 				}
 				i_b++;
 				i_e++;
-				continue;
 			}
 			end:
 			if (itereq<Ti>(i_b, i_e, b_b, b_e) && i_l != i_b) {
@@ -69,7 +72,11 @@ namespace asterid {
 			return separate<T, V, Ti> (a.begin(), a.end(), b.begin(), b.end(), num_sep);
 		}
 		
-		template <typename T, typename V = std::vector<T>, typename TT = decltype(T::value_type), typename Ti = typename T::const_iterator> V separate (Ti const & a_b, Ti const & a_e, TT const & b_v, size_t num_sep = SIZE_MAX) {
+		// ================================
+		// separate on element
+		// ================================
+		
+		template <typename T, typename V = std::vector<T>, typename TT = typename T::value_type, typename Ti = typename T::const_iterator> V separate (Ti const & a_b, Ti const & a_e, TT const & b_v, size_t num_sep = SIZE_MAX) {
 			V r {};
 			if (a_b == a_e) return r;
 			size_t cur_sep = 0;
@@ -78,14 +85,13 @@ namespace asterid {
 				if (*i == b_v) {
 					if (i_l != i) r.push_back( {i_l, i} );
 					i_l = ++i;
-					if (++cur_sep == num_sep) goto end;
-					if (i == a_e) goto end;
+					if (++cur_sep == num_sep) break;
+					if (i == a_e) break;
 					continue;
 				}
 				i++;
-				continue;
 			}
-			end:
+			
 			if (*i == b_v && i != i_l) {
 				r.push_back( {i_l, i} );
 			} else if (i_l != a_e) {
@@ -93,11 +99,80 @@ namespace asterid {
 			}
 			return r;
 		}
-
 		
-		template <typename T, typename V = std::vector<T>, typename TT = decltype(T::value_type), typename Ti = typename T::const_iterator> V separate (T const & a, TT const & b_v, size_t num_sep = SIZE_MAX) {
+		template <typename T, typename V = std::vector<T>, typename TT = typename T::value_type, typename Ti = typename T::const_iterator> V separate (T const & a, TT const & b_v, size_t num_sep = SIZE_MAX) {
 			return separate<T, V, TT, Ti> (a.begin(), a.end(), b_v, num_sep);
 		}
+		
+		// ================================
+		// separate on any sequence
+		// ================================
+		
+		/*
+		template <typename T, typename V = std::vector<T>, typename Ti = typename T::const_iterator, typename SV = std::vector<T>, typename SVi = typename SV::const_iterator> V separate_any (Ti const & a_b, Ti const & a_e, SVi const & b_b, SVi const & b_e, size_t num_sep = SIZE_MAX) {
+			V r {};
+			if (a_b == a_e || b_b == b_e) return r;
+			size_t cur_sep = 0;
+			Ti i_b = a_b, i_l = i_b;
+			while (i_b != a_e) {
+				for (auto const & seq : b_b, b_e) {
+					if (i_l != i_b) r.push_back( {i_l, i_b} );
+					i_b += d;
+					i_l = i_b;
+					if (++cur_sep == num_sep) goto end;
+					for (size_t j = 0; j < d; j++) if (++i_e == a_e) goto end;
+					continue;
+				}
+				i_b++;
+				i_e++;
+			}
+			end:
+			if (itereq<Ti>(i_b, i_e, b_b, b_e) && i_l != i_b) {
+				r.push_back( {i_l, i_b} );
+			} else if (i_l != a_e) {
+				r.push_back( {i_l, a_e} );
+			}
+			return r;
+		}
+		
+		template <typename T, typename V = std::vector<T>, typename Ti = typename T::const_iterator, typename SV = std::vector<T>, typename SVi = typename SV::const_iterator> V separate_any (T const & a, SV const & b, size_t num_sep = SIZE_MAX) {
+			return separate_any<T, V, Ti, SV, SVi> (a.begin(), a.end(), b.begin(), b.end(), num_sep);
+		}
+		*/
+		
+		// ================================
+		// separate on any element
+		// ================================
+		
+		template <typename T, typename V = std::vector<T>, typename TT = typename T::value_type, typename Ti = typename T::const_iterator> V separate_any (Ti const & a_b, Ti const & a_e, Ti const & b_b, Ti const & b_e, size_t num_sep = SIZE_MAX) {
+			V r {};
+			if (a_b == a_e) return r;
+			size_t cur_sep = 0;
+			Ti i = a_b, i_l = i;
+			while (i != a_e) {
+				if (std::any_of(b_b, b_e, [&i](TT const & v){return *i == v;})) {
+					if (i_l != i) r.push_back( {i_l, i} );
+					i_l = ++i;
+					if (++cur_sep == num_sep) break;
+					if (i == a_e) break;
+					continue;
+				}
+				i++;
+			}
+			
+			if (std::any_of(b_b, b_e, [&i](TT const & v){return *i == v;}) && i != i_l) {
+				r.push_back( {i_l, i} );
+			} else if (i_l != a_e) {
+				r.push_back( {i_l, a_e} );
+			}
+			return r;
+		}
+		
+		template <typename T, typename V = std::vector<T>, typename TT = typename T::value_type, typename Ti = typename T::const_iterator> V separate_any (T const & a, T const & b_v, size_t num_sep = SIZE_MAX) {
+			return separate_any<T, V, TT, Ti> (a.begin(), a.end(), b_v.begin(), b_v.end(), num_sep);
+		}
+		
+		// ================================
 		
 		template <typename T, typename TT = decltype(T::value_type)> T replace(T const & c, TT const & v) {
 			

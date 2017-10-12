@@ -6,7 +6,7 @@
 
 using namespace asterid;
 
-json::object null_ {};
+static json::object null_ {};
 json::object const & json::null {null_};
 
 //================================================================================================
@@ -95,6 +95,7 @@ json::object::object(object && other) : t_(other.t_) {
 //================================================================================================
 
 json::object & json::object::operator = (object const & other) {
+	t_ = other.t_;
 	switch(t_) {
 		case type::none: break;
 		case type::boolean: data.boolean = other.data.boolean; break;
@@ -249,7 +250,7 @@ static std::string serialize_array(json::ary_t const & v) {
 	r << '[';
 	bool first = true;
 	for (auto const & i : v) {
-		if (!first) r << ", "; else first = false;
+		if (!first) r << ","; else first = false;
 		r << i;
 	}
 	r << ']';
@@ -261,9 +262,9 @@ static std::string serialize_map(json::map_t const & v) {
 	r << '{';
 	bool first = true;
 	for (auto const & i : v) {
-		if (!first) r << ", "; else first = false;
+		if (!first) r << ","; else first = false;
 		r << serialize_string(i.first);
-		r << ": ";
+		r << ":";
 		r << i.second;
 	}
 	r << '}';
@@ -305,6 +306,7 @@ static bool parse_skip_irrelevant(sci & b, sci const & e) {
 	for (;b!=e;b++) switch(*b) {
 		case '\n':
 		case '\r':
+		case '\t':
 		case ' ':
 		case ',':
 		case ':':

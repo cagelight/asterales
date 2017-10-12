@@ -1,6 +1,6 @@
 #pragma once
 
-#include "byte_buffer.hh"
+#include "buffer_assembly.hh"
 #include "synchro.hh"
 
 #include <atomic>
@@ -54,10 +54,10 @@ namespace asterid::cicada {
 		virtual ~connection() = default;
 		
 		ssize_t read(char * buf, size_t buf_len); // 1:1 recv
-		ssize_t read(byte_buffer &, size_t cnt = SIZE_MAX); // read up to <cnt> bytes into a byte buffer, appends to end
+		ssize_t read(buffer_assembly &, size_t cnt = SIZE_MAX); // read up to <cnt> bytes into a byte buffer, appends to end
 		ssize_t write(char const * buf, size_t buf_len); // 1:1 send
-		ssize_t write(byte_buffer const &, size_t cnt = SIZE_MAX); // write up to <cnt> bytes, does not modify buffer
-		ssize_t write_consume(byte_buffer &, size_t cnt = SIZE_MAX); // write up to <cnt> bytes, consumes from beginning
+		ssize_t write(buffer_assembly const &, size_t cnt = SIZE_MAX); // write up to <cnt> bytes, does not modify buffer
+		ssize_t write_consume(buffer_assembly &, size_t cnt = SIZE_MAX); // write up to <cnt> bytes, consumes from beginning
 		ssize_t sendfile(int fd, off_t * offs, size_t size); // 1:1 sendfile
 		ssize_t sendfile(sendfile_helper &);
 	};

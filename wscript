@@ -6,10 +6,6 @@ import os, sys
 top = '.'
 out = 'build'
 
-projname = 'asterid'
-
-coreprog_name = projname
-
 g_cflags = ["-Wall", "-Wextra", "-std=c++17"]
 def btype_cflags(ctx):
 	return {
@@ -43,10 +39,27 @@ def build(bld):
 	bld.install_files('${PREFIX}/include/asterid', bld_install_files)
 	
 	bld_files = bld.path.ant_glob('src/*.cc')
-	coreprog = bld (
+	asterid = bld (
 		features = "cxx cxxshlib",
-		target = coreprog_name,
+		target = 'asterid',
 		source = bld_files,
 		uselib = ['PTHREAD', 'ICU'],
+	)
+	
+	b2t = bld (
+		features = "cxx cxxprogram",
+		target = 'aeonb2t',
+		source = 'tools/b2t.cc',
+		uselib = ['PTHREAD', 'ICU'],
+		use = ['asterid'],
+		includes = [os.path.join(top, 'src')],
+	)
+	
+	t2b = bld (
+		features = "cxx cxxprogram",
+		target = 'aeont2b',
+		source = 'tools/t2b.cc',
+		uselib = ['PTHREAD', 'ICU'],
+		use = ['asterid'],
 		includes = [os.path.join(top, 'src')],
 	)

@@ -5,6 +5,7 @@
 #include "asterid/bspacker.hh"
 #include "asterid/linq.hh"
 #include "asterid/json.hh"
+#include "asterid/hyena.hh"
 
 #include <vector>
 
@@ -39,4 +40,13 @@ void json_test() {
 	json::object test1 {};
 	test1 = 5;
 	test1.serialize();
+}
+
+struct test_panel : public hyena::panel<int> {
+protected:
+	virtual void layout_eval() override {}
+};
+
+void hyena_test() {
+	hyena::hbox<test_panel> test_layout;
 }
