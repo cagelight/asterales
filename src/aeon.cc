@@ -890,6 +890,8 @@ bool aeon::object::operator == (object const & other) const {
 			return *data.ary == *other.data.ary;
 		case type::map:
 			return *data.map == *other.data.map;
+		case type::binary:
+			return *data.bin == *other.data.bin;
 		default:
 			return false;
 	}
