@@ -4,7 +4,6 @@
 #include "asterid/time.hh"
 #include "asterid/bspacker.hh"
 #include "asterid/linq.hh"
-#include "asterid/json.hh"
 #include "asterid/hyena.hh"
 
 #include <vector>
@@ -34,12 +33,6 @@ void istring_test () {
 void linq_test () {
 	std::vector<int> test1 {1, 2, 3, 4, 5, 6, 7, 8, 9};
 	//asterid::linq<std::vector<int>> linq1 {test1};
-}
-
-void json_test() {
-	json::object test1 {};
-	test1 = 5;
-	test1.serialize();
 }
 
 struct test_panel : public hyena::panel<int> {

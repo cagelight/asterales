@@ -27,6 +27,7 @@ aeon::object::object(type t) : t_(t) {
 		case type::string: data.str = new str_t {}; break;
 		case type::array: data.ary = new ary_t {}; break;
 		case type::map: data.map = new map_t {}; break;
+		case type::binary: data.bin = new bin_t {}; break;
 	}
 }
 
@@ -39,6 +40,7 @@ aeon::object::~object() {
 		case type::string: delete data.str; break;
 		case type::array: delete data.ary; break;
 		case type::map: delete data.map; break;
+		case type::binary: delete data.bin; break;
 	}
 }
 
@@ -78,6 +80,14 @@ aeon::object::object(map_t && v) : t_(type::map) {
 	data.map = new map_t(std::forward<map_t &&>(v));
 }
 
+aeon::object::object(bin_t const & v) : t_(type::binary) {
+	data.bin = new bin_t(v);
+}
+
+aeon::object::object(bin_t && v) : t_(type::binary) {
+	data.bin = new bin_t(std::forward<bin_t &&>(v));
+}
+
 aeon::object::object(object const & other) : t_(other.t_) {
 	switch(t_) {
 		case type::none: break;
@@ -87,6 +97,7 @@ aeon::object::object(object const & other) : t_(other.t_) {
 		case type::string: data.str = new str_t (*other.data.str); break;
 		case type::array: data.ary = new ary_t (*other.data.ary); break;
 		case type::map: data.map = new map_t (*other.data.map); break;
+		case type::binary: data.bin = new bin_t (*other.data.bin); break;
 	}
 }
 
@@ -110,6 +121,7 @@ aeon::object & aeon::object::operator = (object const & other) {
 		case type::string: data.str = new str_t (*other.data.str); break;
 		case type::array: data.ary = new ary_t (*other.data.ary); break;
 		case type::map: data.map = new map_t (*other.data.map); break;
+		case type::binary: data.bin = new bin_t (*other.data.bin); break;
 	}
 	return *this;
 }
@@ -191,6 +203,58 @@ aeon::map_t const & aeon::object::map() const {
 	if (t_ != type::map) return null_map;
 	return *data.map;
 }
+
+aeon::bin_t & aeon::object::binary() {
+	if (t_ != type::binary) *this = object {type::binary};
+	return *data.bin;
+}
+
+static aeon::bin_t const null_bin {};
+aeon::bin_t const & aeon::object::binary() const {
+	if (t_ != type::binary) return null_bin;
+	return *data.bin;
+}
+
+bool aeon::object::as_boolean() const {
+	switch(t_) {
+		default: return false;
+		case type::boolean: return data.boolean;
+		case type::integer: return data.num_int != 0;
+		case type::real: return data.num_real != 0;
+		case type::string: return !data.str->empty();
+	}
+}
+
+aeon::int_t aeon::object::as_integer() const {
+	switch(t_) {
+		default: return 0;
+		case type::boolean: return data.boolean ? 1 : 0;
+		case type::integer: return data.num_int;
+		case type::real: return data.num_real;
+		case type::string: return strtoll(data.str->data(), nullptr, 10);
+	}
+}
+
+aeon::real_t aeon::object::as_real() const {
+	switch(t_) {
+		default: return 0;
+		case type::boolean: return data.boolean ? 1 : 0;
+		case type::integer: return data.num_int;
+		case type::real: return data.num_real;
+		case type::string: return strtod(data.str->data(), nullptr);
+	}
+}
+
+aeon::str_t aeon::object::as_string() const {
+	switch(t_) {
+		default: return "";
+		case type::boolean: return std::to_string(data.boolean);
+		case type::integer: return std::to_string(data.num_int);
+		case type::real: return std::to_string(data.num_real);
+		case type::string: return *data.str;
+	}
+}
+
 
 // ================================================================================================
 // ------------------------------------------------------------------------------------------------
@@ -297,6 +361,9 @@ std::string aeon::object::serialize_text() const {
 			return serialize_aeon_text_array(*data.ary);
 		case type::map:
 			return serialize_aeon_text_map(*data.map);
+		// can't really make binary fields backwards compatible with json...
+		case type::binary:
+			return serialize_aeon_text_string(data.bin->to_string());
 	}
 }
 
@@ -562,6 +629,8 @@ enum struct binary_type : uint8_t {
 	array_empty,
 	map,
 	map_empty,
+	binary,
+	binary_empty,
 };
 
 struct varuint_header {
@@ -699,6 +768,15 @@ void aeon::object::serialize_binary(buffer_assembly & buf) const {
 				}
 			}
 			return;
+		case type::binary:
+			if (!data.bin->size()) {
+				buf.write(binary_type::binary_empty);
+			} else {
+				buf.write(binary_type::binary);
+				serialize_varuint(buf, data.bin->size());
+				buf << *data.bin;
+			}
+			return;
 	}
 }
 
@@ -747,6 +825,13 @@ static aeon::map_t parse_aeon_binary_map(buffer_assembly & buf) {
 	return map;
 }
 
+static aeon::bin_t parse_aeon_binary(buffer_assembly & buf) {
+	size_t len = read_varuint(buf);
+	aeon::bin_t bin;
+	buf.transfer_to(bin, len);
+	return bin;
+}
+
 template <typename T> inline T ezread(buffer_assembly & buf) {
 	pcheck(T);
 	return buf.read<T>();
@@ -755,7 +840,7 @@ template <typename T> inline T ezread(buffer_assembly & buf) {
 aeon::object aeon::object::parse_binary(buffer_assembly & buf) {
 	pcheck(binary_type);
 	switch (buf.read<binary_type>()) {
-		default:
+		default: pthrow;
 		case binary_type::null: return null_;
 		case binary_type::boolean_true: return true;
 		case binary_type::boolean_false: return false;
@@ -779,6 +864,8 @@ aeon::object aeon::object::parse_binary(buffer_assembly & buf) {
 		case binary_type::array_empty: return aeon::array();
 		case binary_type::map: return parse_aeon_binary_map(buf);
 		case binary_type::map_empty: return aeon::map();
+		case binary_type::binary: return parse_aeon_binary(buf);
+		case binary_type::binary_empty: return aeon::binary();
 	} 
 }
 
@@ -786,7 +873,7 @@ aeon::object aeon::object::parse_binary(buffer_assembly & buf) {
 // ------------------------------------------------------------------------------------------------
 // ================================================================================================
 
-bool aeon::object::operator == (object const & other) {
+bool aeon::object::operator == (object const & other) const {
 	if (t_ != other.t_) return false;
 	switch (t_) {
 		case type::none:

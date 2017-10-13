@@ -17,6 +17,7 @@ namespace asterid::aeon {
 	typedef std::string str_t;
 	typedef std::vector<object> ary_t;
 	typedef std::unordered_map<str_t, object> map_t;
+	typedef buffer_assembly bin_t;
 	
 	namespace exception {
 		struct parse {};
@@ -30,7 +31,8 @@ namespace asterid::aeon {
 			real,
 			string,
 			array,
-			map
+			map,
+			binary
 		};
 		object() = default;
 		object(type);
@@ -44,6 +46,8 @@ namespace asterid::aeon {
 		object(ary_t &&);
 		object(map_t const &);
 		object(map_t &&);
+		object(bin_t const &);
+		object(bin_t &&);
 		
 		inline object(char const * str) : object( std::string {str} ) {}
 		template <typename T> inline object(T i, typename std::enable_if<std::is_integral<T>::value>::type* = 0) : object(static_cast<int_t>(i)) {}
@@ -70,6 +74,21 @@ namespace asterid::aeon {
 		ary_t const & array() const;
 		map_t & map();
 		map_t const & map() const;
+		bin_t & binary();
+		bin_t const & binary() const;
+		
+		bool as_boolean() const;
+		int_t as_integer() const;
+		real_t as_real() const;
+		str_t as_string() const;
+		
+		inline operator bool () const { return as_boolean(); }
+		inline operator int_t () const { return as_integer(); }
+		inline operator real_t () const { return as_real(); }
+		inline operator str_t () const { return as_string(); }
+		inline operator ary_t const & () const { return array(); }
+		inline operator map_t const & () const { return map(); }
+		inline operator bin_t const & () const { return binary(); }
 
 		object & operator [] (size_t);
 		object const & operator [] (size_t) const;
@@ -79,7 +98,6 @@ namespace asterid::aeon {
 		inline object const & operator [] (char const * str) const { return operator [] (std::string{str}); }
 		
 		inline bool is_null() const { return t_ == type::none; }
-		inline operator bool () const { return is_null(); }
 		
 		inline bool is_bool() const { return t_ == type::boolean; }
 		inline bool is_integer() const { return t_ == type::integer; }
@@ -88,6 +106,7 @@ namespace asterid::aeon {
 		inline bool is_string() const { return t_ == type::string; }
 		inline bool is_array() const { return t_ == type::array; }
 		inline bool is_map() const { return t_ == type::map; }
+		inline bool is_binary() const { return t_ == type::binary; }
 		
 		std::string serialize_text() const;
 		buffer_assembly serialize_binary() const;
@@ -96,7 +115,7 @@ namespace asterid::aeon {
 		static object parse_text(std::string const &);
 		static object parse_binary(buffer_assembly & buf);
 		
-		bool operator == (object const & other);
+		bool operator == (object const & other) const;
 		
 	private:
 		type t_ = type::none;
@@ -107,6 +126,7 @@ namespace asterid::aeon {
 			str_t * str;
 			ary_t * ary;
 			map_t * map;
+			bin_t * bin;
 		} data;
 	};
 	
@@ -116,6 +136,7 @@ namespace asterid::aeon {
 	inline object string() { return object::type::string; }
 	inline object array() { return object::type::array; }
 	inline object map() { return object::type::map; }
+	inline object binary() { return object::type::binary; }
 	
 	extern object const & null;
 };
