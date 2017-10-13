@@ -117,6 +117,7 @@ void buffer_assembly::write(byte_t const * src, size_t size) {
 void buffer_assembly::read(byte_t * dest, size_t size) {
 	memcpy(dest, offset_, size);
 	offset_ += size;
+	size_ -= size;
 }
 
 void buffer_assembly::discard(size_t size) {
