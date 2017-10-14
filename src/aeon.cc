@@ -11,7 +11,7 @@ aeon::object const & aeon::null {null_};
 
 #define pthrow throw aeon::exception::parse {}
 #define pcheck(type) if (!buf.precheck<type>()) pthrow
-#define ncheck(size) if (!buf.precheck<uint8_t>(size)) pthrow
+#define ncheck(size) if (!buf.precheck(size)) pthrow
 
 // ================================================================================================
 // ------------------------------------------------------------------------------------------------

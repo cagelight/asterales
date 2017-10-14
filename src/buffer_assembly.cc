@@ -50,6 +50,7 @@ bool buffer_assembly::operator == (buffer_assembly const & other) {
 void buffer_assembly::realign() {
 	if (data_ == offset_) return;
 	memmove(datav, offsv, size_);
+	offset_ = data_;
 }
 
 void buffer_assembly::reserve(size_t new_size) {
@@ -61,18 +62,20 @@ void buffer_assembly::reserve(size_t new_size) {
 
 void buffer_assembly::resize(size_t new_size) {
 	realign();
-	if (new_size == reserve_size_) return;
-	reserve_size_ = new_size;
-	offset_ = data_ = datap(realloc(data_, reserve_size_));
-	if (size_ < reserve_size_)
-		memset(data_ + size_, 0, reserve_size_ - size_);
-	size_ = reserve_size_;
+	if (size_ == new_size) return;
+	if (!new_size) { clear(); return; }
+	if (new_size > reserve_size_) {
+		reserve_size_ = new_size;
+		offset_ = data_ = datap(realloc(data_, reserve_size_));
+	}
+	size_ = new_size;
 }
 
 void buffer_assembly::shrink() {
 	realign();
 	if (reserve_size_ == size_) return;
 	reserve_size_ = size_;
+	if (reserve_size_ == 0) reserve_size_ = default_size;
 	offset_ = data_ = datap(realloc(data_, reserve_size_));
 }
 
@@ -122,6 +125,7 @@ void buffer_assembly::read(byte_t * dest, size_t size) {
 
 void buffer_assembly::discard(size_t size) {
 	offset_ += size;
+	size_ -= size;
 }
 
 std::string buffer_assembly::to_string() const {

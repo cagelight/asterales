@@ -50,7 +50,7 @@ def build(bld):
 		features = "cxx cxxprogram",
 		target = 'aeonb2t',
 		source = 'tools/b2t.cc',
-		uselib = ['PTHREAD', 'ICU'],
+		uselib = ['PTHREAD'],
 		use = ['asterid'],
 		includes = [os.path.join(top, 'src')],
 	)
@@ -59,7 +59,16 @@ def build(bld):
 		features = "cxx cxxprogram",
 		target = 'aeont2b',
 		source = 'tools/t2b.cc',
-		uselib = ['PTHREAD', 'ICU'],
+		uselib = ['PTHREAD'],
+		use = ['asterid'],
+		includes = [os.path.join(top, 'src')],
+	)
+	
+	tests = bld(
+		features = "cxx cxxprogram",
+		target = 'asterid_tests',
+		source = bld.path.ant_glob('tests/*.cc'),
+		uselib = ['PTHREAD'],
 		use = ['asterid'],
 		includes = [os.path.join(top, 'src')],
 	)

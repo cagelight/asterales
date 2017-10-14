@@ -49,10 +49,6 @@ namespace asterid {
 		std::string hex () const;
 		std::string hexlow () const;
 		
-		void write(byte_t const * src, size_t size);
-		void read(byte_t * dest, size_t size);
-		void discard(size_t size);
-		
 		inline size_t transfer_to(buffer_assembly & other, size_t num = SIZE_MAX) {
 			if (num > size_) num = size_;
 			if (num) {
@@ -62,21 +58,26 @@ namespace asterid {
 			return num;
 		}
 		
-		inline void write(char const * src, size_t dest) { write(reinterpret_cast<byte_t const *>(src), dest); }
-		inline void read(char * src, size_t dest) { read(reinterpret_cast<byte_t *>(src), dest); }
-		
-		template <typename T> inline bool precheck(size_t size = sizeof(T)) const noexcept { return size_ >= size; }
-		
+		void write(byte_t const * src, size_t size);
+		inline void write(char const * src, size_t size) { write(reinterpret_cast<byte_t const *>(src), size); }
+		inline void write(char const * src) { write(reinterpret_cast<byte_t const *>(src), strlen(src)); }
 		template <typename T, typename = std::enable_if_t<std::is_pod<T>::value && !std::is_pointer<T>::value>> inline void write(T const & v, size_t size = sizeof(T)) { write(reinterpret_cast<byte_t const *>(&v), size); }
 		template <typename T, typename = std::enable_if_t<!std::is_pod<T>::value>> inline void write_unsafe(T const & v, size_t size = sizeof(T)) { write(reinterpret_cast<byte_t const *>(&v), size); }
 		
+		inline buffer_assembly & operator << (buffer_assembly const & other) { write(other.offset_, other.size_); return *this; }
+		inline buffer_assembly & operator << (char const * str) { write(str); return *this; }
+		inline buffer_assembly & operator << (std::string const & str) { write(reinterpret_cast<byte_t const *>(str.data()), str.size()); return *this; }
+		template <typename T, typename = std::enable_if_t<std::is_pod<T>::value && !std::is_pointer<T>::value>> inline buffer_assembly & operator << (T const & v) { write(reinterpret_cast<byte_t const *>(&v), sizeof(T)); return *this; }
+		
+		bool precheck(size_t size) const noexcept { return size_ >= size; }
+		template <typename T> inline bool precheck() const noexcept { return size_ >= sizeof(T); }
+		
+		void read(byte_t * dest, size_t size);
+		inline void read(char * src, size_t size) { read(reinterpret_cast<byte_t *>(src), size); }
 		template <typename T, typename = std::enable_if_t<std::is_pod<T>::value && !std::is_pointer<T>::value>> inline T read(size_t size = sizeof(T)) { T v {}; read(reinterpret_cast<byte_t *>(&v), size); return v; }
 		template <typename T, typename = std::enable_if_t<!std::is_pod<T>::value>> inline T read_unsafe(size_t size = sizeof(T)) { T v {}; read(reinterpret_cast<byte_t *>(&v), size); return v; }
 		
-		inline buffer_assembly & operator << (buffer_assembly const & other) { write(other.offset_, other.size_); return *this; }
-		inline buffer_assembly & operator << (char const * str) { write(reinterpret_cast<byte_t const *>(str), strlen(str)); return *this; }
-		inline buffer_assembly & operator << (std::string const & str) { write(reinterpret_cast<byte_t const *>(str.data()), str.size()); return *this; }
-		template <typename T, typename = std::enable_if_t<std::is_pod<T>::value && !std::is_pointer<T>::value>> inline buffer_assembly & operator << (T const & v) { write(reinterpret_cast<byte_t const *>(&v), sizeof(T)); return *this; }
+		void discard(size_t size);
 		
 		std::string to_string() const;
 		

@@ -90,7 +90,7 @@ ssize_t connection::read(buffer_assembly & buf, size_t cnt) {
 		if (e == 0) break;
 		ret += e;
 		cnt -= e;
-		buf.write(tmpbuf, e);
+		buf.write(&tmpbuf[0], e);
 		if (static_cast<size_t>(e) < readnum) break;
 	}
 	return ret;
