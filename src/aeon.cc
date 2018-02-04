@@ -143,7 +143,7 @@ bool & aeon::object::boolean() {
 	return data.boolean;
 }
 
-static bool constexpr null_bool = 0;
+static bool constexpr null_bool = false;
 bool const & aeon::object::boolean() const {
 	if (t_ != type::boolean) return null_bool;
 	return data.boolean;
@@ -361,7 +361,7 @@ std::string aeon::object::serialize_text() const {
 			return serialize_aeon_text_array(*data.ary);
 		case type::map:
 			return serialize_aeon_text_map(*data.map);
-		// can't really make binary fields backwards compatible with json...
+		// can't really make binary fields backwards compatible with json... // TODO -- base64
 		case type::binary:
 			return serialize_aeon_text_string(data.bin->to_string());
 	}
@@ -606,11 +606,12 @@ aeon::object aeon::object::parse_text(std::string const & str) {
 // BINARY COMMON
 
 enum struct binary_type : uint8_t {
-	null,
+	// < 0x80 is number (0 - 127)
+	null = 0x80, // 0x80
 	boolean_true,
 	boolean_false,
 	zero,
-	one,
+	one, // 0x84
 	int8,
 	int16,
 	int32,
@@ -620,17 +621,17 @@ enum struct binary_type : uint8_t {
 	uint32,
 	iuint8,
 	iuint16,
-	iuint32,
+	iuint32, // 0x8E
 	real32,
-	real64,
+	real64, // 0x90
 	string,
-	string_empty,
+	string_empty, // 0x92
 	array,
-	array_empty,
+	array_empty, // 0x94
 	map,
-	map_empty,
+	map_empty, // 0x96
 	binary,
-	binary_empty,
+	binary_empty, // 0x98
 };
 
 struct varuint_header {

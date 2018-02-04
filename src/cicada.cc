@@ -22,11 +22,22 @@ static constexpr int disable = 0;
 
 #define EPOLLEVT reinterpret_cast<epoll_event *>(epoll_evt)
 
+#define MAX_EPOLL_EVENTS 128
+#define EPOLLMEVT reinterpret_cast<epoll_event *>(epoll_mevt)
+
 socket::~socket() {
 	if (FD != -1) {
 		shutdown(FD, SHUT_RDWR);
-		close(FD);
+		::close(FD);
 	}
+}
+
+void socket::close() {
+	if (FD != -1) {
+		shutdown(FD, SHUT_RDWR);
+		::close(FD);
+	}
+	FD = -1;
 }
 
 struct sendfile_helper::private_data {
@@ -148,7 +159,7 @@ ssize_t connection::sendfile(sendfile_helper & sh) {
 	} else return e;
 }
 
-listener::listener(uint16_t port, accept_cb cb) : _accept_cb(cb) {
+listener::listener(uint16_t port, accept_cb && cb) : _accept_cb(std::forward<accept_cb &&>(cb)) {
 	FD = ::socket(PF_INET6, SOCK_STREAM | SOCK_NONBLOCK, 0);
 	if (FD == -1) throw exception::socket_acquire {};
 	setsockopt(FD, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable));
@@ -163,7 +174,7 @@ listener::listener(uint16_t port, accept_cb cb) : _accept_cb(cb) {
 	if (listen(FD, SOMAXCONN)) throw exception::listen_start {};
 }
 
-void listener::accept() {
+void listener::accept() noexcept {
 	while (true) {
 		socket temp;
 		socklen_t slen = sizeof(temp.addr);
@@ -173,12 +184,9 @@ void listener::accept() {
 	}
 }
 
-server::server(uint16_t port, bool create_master_thread, unsigned int workers_num) : li(port, [this](connection && con){ this->accept_connection(std::forward<connection>(con)); }) {
+server::server(bool create_master_thread, unsigned int workers_num) : last_pulse { asterid::time::now<asterid::time::clock_type::monotonic>() } {
 	epoll_obj = epoll_create(1);
-	epoll_evt = new epoll_event {};
-	EPOLLEVT->data.fd = li.FD;
-	EPOLLEVT->events = EPOLLIN;
-	epoll_ctl(epoll_obj, EPOLL_CTL_ADD, li.FD, EPOLLEVT);
+	epoll_mevt = new epoll_event [MAX_EPOLL_EVENTS];
 	for (unsigned int i = 0; i < workers_num; i++) workers.push_back( new std::thread { &server::worker_run, this } );
 	if (create_master_thread) master_thread = new std::thread { [this](){ while (run_sem) master_loop(); } };
 }
@@ -189,70 +197,98 @@ server::~server() {
 		if (master_thread->joinable()) master_thread->join();
 		delete master_thread;
 	}
+	m2w_cv_mut.lock();
+	m2w_cv_mut.unlock();
 	m2w_cv.notify_all();
 	for (std::thread * worker : workers) {
 		if (worker->joinable()) worker->join();
 		delete worker;
 	}
-	if (pib) delete pib;
 	close(epoll_obj);
-	if (EPOLLEVT) delete EPOLLEVT;
+	if (EPOLLMEVT) delete [] EPOLLMEVT;
+}
+
+void server::epoll_register(int fd) {
+	epoll_event evt {};
+	evt.data.fd = fd;
+	evt.events = EPOLLIN;
+	epoll_ctl(epoll_obj, EPOLL_CTL_ADD, fd, &evt);
 }
 
 void server::master(std::function<bool()> pred) {
 	while (pred()) master_loop();
 }
 
-void server::accept_connection(connection && con) {
-	instances.emplace_front(new instance { *this, std::forward<connection>(con), pib->instantiate() });
-}
-
 void server::master_loop() {
-	epoll_event event {};
-	epoll_wait(epoll_obj, &event, 1, 100);
-	li.accept();
 	
-	w2m_lock.lock();
-	while (!w2m_queue.empty()) {
-		auto msg = w2m_queue.front();
-		w2m_queue.pop();
-		
-		std::shared_ptr<instance> inst = msg.i.lock();
-		if (!inst) continue;
-		if (msg.sig.m & signal::mask::terminate) {
-			instances.remove(inst);
-			inst.reset();
+	int nfd = epoll_wait(epoll_obj, EPOLLMEVT, MAX_EPOLL_EVENTS, 1000);
+	if (nfd < 0) {
+		printf("ERROR: epoll_wait returned %i\n", nfd);
+		run_sem.store(false);
+		return;
+	}
+	
+	service_lock.lock();
+	for (auto & li : services) {
+		li.second->accept();;
+	}
+	service_lock.unlock();
+	
+	m2w_lock.lock();
+	for (int i = 0; i < nfd; i++) {
+		reason::type rsn = 0;
+		if (EPOLLMEVT[i].events & EPOLLIN) rsn |= reason::read_available;
+		if (EPOLLMEVT[i].events & EPOLLOUT) rsn |= reason::write_available;
+		m2w_queue.emplace(static_cast<int>(EPOLLMEVT[i].data.fd), rsn);
+	}
+	m2w_lock.unlock();
+	
+	auto now = asterid::time::now<asterid::time::clock_type::monotonic>();
+	if (now - last_pulse > asterid::time::span {5}) {
+		last_pulse = now;
+		for (auto & i : instances) {
+			m2w_lock.lock();
+			m2w_queue.emplace(i.first, reason::pulse);
+			m2w_lock.unlock();
 		}
 	}
-	w2m_lock.unlock();
-	for (auto & i : instances) {
-		m2w_lock.lock();
-		m2w_queue.emplace(i, reason::pulse);
-		m2w_lock.unlock();
-	}
+	
+	m2w_cv_mut.lock();
+	m2w_cv_mut.unlock();
 	m2w_cv.notify_all();
 }
 void server::worker_run() {
+	
 	while (run_sem) {
 		{
 			std::unique_lock<std::mutex> lk {m2w_cv_mut};
-			m2w_cv.wait_for(lk, std::chrono::milliseconds(1000));
+			if (!run_sem) return;
+			m2w_cv.wait_for(lk, std::chrono::milliseconds(5000), [this] {
+				std::lock_guard {m2w_lock};
+				return (!run_sem) || (!m2w_queue.empty());
+			});
 		}
 		
 		if (!run_sem) return;
 		
 		while (true) {
-			m2w_lock.lock();
-			if (m2w_queue.empty()) {
-				m2w_lock.unlock();
-				break;
-			}
+			
+			std::unique_lock<asterid::spinlock> m2w_ulk {m2w_lock};
+			if (m2w_queue.empty()) break;
 			auto msg = m2w_queue.front();
 			m2w_queue.pop();
-			m2w_lock.unlock();
+			m2w_ulk.unlock();
 			
-			std::shared_ptr<instance> inst = msg.i.lock();
-			if (!inst) continue;
+			instance_lock.read_access();
+			auto inst_find = instances.find(msg.descriptor);
+			if (inst_find == instances.end()) {
+				instance_lock.read_done();
+				continue;
+			}
+			
+			std::shared_ptr<instance> inst = inst_find->second;
+			instance_lock.read_done();
+			
 			if (!inst->use_lock.try_lock()) continue;
 			detail d { msg.r };
 			
@@ -265,24 +301,40 @@ void server::worker_run() {
 				sig.m |= signal::mask::terminate;
 			}
 			
+			if (sig.m & signal::mask::terminate) {
+				instance_lock.write_lock();
+				instances.erase(msg.descriptor);
+				instance_lock.write_unlock();
+				inst->use_lock.unlock();
+				continue;
+			}
+			
 			int flags = 0;
 			if (sig.m & signal::mask::wait_for_read) flags |= EPOLLIN;
 			if (sig.m & signal::mask::wait_for_write) flags |= EPOLLOUT;
 			inst->update_epoll(flags);
 			
 			inst->use_lock.unlock();
-			
-			w2m_lock.lock();
-			w2m_queue.emplace(msg.i, std::move(sig));
-			w2m_lock.unlock();
 		}
 	}
 }
 
-server::instance::instance(server const & parent, connection && con, protocol * proto) : parent(parent), con(std::forward<connection>(con)), proto(proto) {
+server::instance::instance(server const & parent, connection && con, std::shared_ptr<protocol_instantiator> const & pi) : parent(parent), con(std::forward<connection>(con)) {
+	proto = pi->instantiate();
+	proto->set_mask = [this](signal::mask::type new_mask){
+		if (new_mask & signal::mask::terminate) {
+			this->con.close();
+			return;
+		}
+		int evt = 0;
+		if (new_mask & signal::mask::wait_for_read) evt |= EPOLLIN;
+		if (new_mask & signal::mask::wait_for_write) evt |= EPOLLOUT;
+		this->update_epoll(evt);
+	};
+	
 	epoll_evt = new epoll_event {};
 	EPOLLEVT->data.fd = this->con.FD;
-	EPOLLEVT->events = EPOLLIN;
+	EPOLLEVT->events = EPOLLIN | EPOLLOUT | EPOLLONESHOT;
 	epoll_ctl(parent.epoll_obj, EPOLL_CTL_ADD, this->con.FD, EPOLLEVT);
 }
 server::instance::~instance() {
@@ -291,6 +343,7 @@ server::instance::~instance() {
 }
 
 void server::instance::update_epoll(int flags) {
+	flags |= EPOLLONESHOT;
 	EPOLLEVT->events = flags;
 	epoll_ctl(parent.epoll_obj, EPOLL_CTL_MOD, con.FD, EPOLLEVT);
 }

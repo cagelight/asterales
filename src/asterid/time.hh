@@ -32,6 +32,16 @@ namespace asterid::time {
 			return ret;
 		}
 		
+		bool operator > (unit const & other) {
+			if (tv_sec == other.tv_sec) return tv_nsec > other.tv_nsec;
+			else return tv_sec > other.tv_sec;
+		}
+		
+		bool operator < (unit const & other) {
+			if (tv_sec == other.tv_sec) return tv_nsec < other.tv_nsec;
+			else return tv_sec < other.tv_sec;
+		}
+		
 	protected:
 		void resolve() {
 			auto mval = tv_nsec / NANO;

@@ -111,6 +111,8 @@ std::string buffer_assembly::hexlow() const {
 	return ret;
 }
 
+
+
 void buffer_assembly::write(byte_t const * src, size_t size) {
 	reserve(size_ + size);
 	memcpy(offset_ + size_, src, size);

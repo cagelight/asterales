@@ -1,9 +1,14 @@
 #pragma once
 
+#include <cassert>
 #include <string>
+
+#define TEST(cond) assert(cond)
 
 namespace tests {
 	void buffer_assembly_tests();
+	void threadpool_tests();
+	void codon_tests();
 }
 
 namespace util {

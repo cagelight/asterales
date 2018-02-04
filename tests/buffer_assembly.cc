@@ -1,10 +1,7 @@
 #include "tests.hh"
 
-#include <cassert>
 #include <random>
 #include "asterid/buffer_assembly.hh"
-
-#define TEST(cond) assert(cond)
 
 static std::mt19937_64 gen {std::random_device{}()};
 static std::uniform_int_distribution<size_t> dist (0, 4096);

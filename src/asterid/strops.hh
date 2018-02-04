@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <iostream>
 
 namespace asterid {
 	
@@ -12,6 +13,18 @@ namespace asterid {
 	
 	std::string strf( char const * fmt, ... ) noexcept;
 	char const * vas( char const * fmt, ... ) noexcept;
+	
+	struct streamlogger {
+		typedef std::function<void(std::string const &)> logger_cb;
+		logger_cb cb;
+		std::string str;
+		inline streamlogger(logger_cb cb, std::string const & init = "") : cb(cb), str(init) {}
+		inline ~streamlogger() { cb(str); }
+		
+		inline streamlogger & operator << ( std::string const & other ) { str += other; return *this; }
+		inline streamlogger & operator << ( char const * other ) { str += other; return *this; }
+		template <typename T> inline streamlogger & operator << ( T const & other ) { str += std::to_string(other); return *this; }
+	};
 	
 	namespace strop {
 		

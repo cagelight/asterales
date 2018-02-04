@@ -48,7 +48,7 @@ def build(bld):
 	
 	b2t = bld (
 		features = "cxx cxxprogram",
-		target = 'aeonb2t',
+		target = 'aeon2json',
 		source = 'tools/b2t.cc',
 		uselib = ['PTHREAD'],
 		use = ['asterid'],
@@ -57,7 +57,7 @@ def build(bld):
 	
 	t2b = bld (
 		features = "cxx cxxprogram",
-		target = 'aeont2b',
+		target = 'json2aeon',
 		source = 'tools/t2b.cc',
 		uselib = ['PTHREAD'],
 		use = ['asterid'],

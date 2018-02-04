@@ -4,6 +4,10 @@
 #define BRASSICA_PRINT_FUNCTIONS 1
 #endif
 
+#ifndef BRASSICA_HASH_FUNCTIONS
+#define BRASSICA_HASH_FUNCTIONS 1
+#endif
+
 #ifndef BRASSICA_INPUT_SANITIZING
 #define BRASSICA_INPUT_SANITIZING 1
 #endif
@@ -15,6 +19,10 @@
 
 #if BRASSICA_PRINT_FUNCTIONS == 1
 #include <string>
+#endif
+
+#if BRASSICA_HASH_FUNCTIONS == 1
+#include <functional>
 #endif
 
 namespace asterid::brassica {
@@ -33,6 +41,9 @@ namespace asterid::brassica {
 	template <typename T> T & max(T & A, T & B) { return A > B ? A : B; }
 	template <typename T> void clamp(T & V, T const & MIN, T const & MAX) { if (V > MAX) V = MAX; else if (V < MIN) V = MIN; }
 	template <typename T> T clamped(T const & V, T const & MIN, T const & MAX) { if (V > MAX) return MAX; else if (V < MIN) return MIN; else return V; }
+	template <typename T, typename L = double> T lerp(T const & A, T const & B, L v) {
+		return (1 - v) * A + v * B;
+	}
 
 //================================================================================================
 //------------------------------------------------------------------------------------------------
@@ -211,10 +222,7 @@ namespace asterid::brassica {
 		
 		inline bool operator == (vec3_t<T> const & other) const { return data[0] == other.data[0] && data[1] == other.data[1] && data[2] == other.data[2]; }
 		inline vec3_t<T> operator + (vec3_t<T> const & other) const { return { data[0] + other.data[0], data[1] + other.data[1], data[2] + other.data[2] }; }
-		inline vec3_t<T> operator + (T const & value) const { return { data[0] + value, data[1] + value, data[2] + value }; }
 		inline vec3_t<T> operator - (vec3_t<T> const & other) const { return { data[0] - other.data[0], data[1] - other.data[1], data[2] - other.data[2] }; }
-		inline vec3_t<T> operator - (T const & value) const { return { data[0] - value, data[1] - value, data[2] - value }; }
-		inline vec3_t<T> operator * (T const & value) const { return { data[0] * value, data[1] * value, data[2] * value }; }
 		inline vec3_t<T> operator * (mat4_t<T> const & mat) const {
 			return {
 				data[0] * mat[0][0] + data[1] * mat[1][0] + data[2] * mat[2][0] + mat[3][0],
@@ -222,7 +230,6 @@ namespace asterid::brassica {
 				data[0] * mat[0][2] + data[1] * mat[1][2] + data[2] * mat[2][3] + mat[3][2],
 			};
 		}
-		inline vec3_t<T> operator / (T const & value) const { return { data[0] / value, data[1] / value, data[2] / value }; }
 		
 		inline vec3_t<T> & operator += (vec3_t<T> const & other) { data[0] += other.data[0]; data[1] += other.data[1]; data[2] += other.data[2]; return *this; }
 		inline vec3_t<T> & operator += (T const & value) { data[0] += value; data[1] += value; data[2] += value; return *this; }
@@ -248,6 +255,25 @@ namespace asterid::brassica {
 		}
 #endif
 	};
+	
+	template <typename T, typename U> inline vec3_t<T> operator + (vec3_t<T> const & A, U const & value) { 
+		return { A[0] + value, A[1] + value, A[2] + value };
+	}
+	template <typename T, typename U> inline vec3_t<T> operator + (U const & value, vec3_t<T> const & A) { 
+		return { A[0] + value, A[1] + value, A[2] + value };
+	}
+	template <typename T, typename U> inline vec3_t<T> operator - (vec3_t<T> const & A, U const & value) { 
+		return { A[0] - value, A[1] - value, A[2] - value };
+	}
+	template <typename T, typename U> inline vec3_t<T> operator * (vec3_t<T> const & A, U const & value) { 
+		return { A[0] * value, A[1] * value, A[2] * value };
+	}
+	template <typename T, typename U> inline vec3_t<T> operator * (U const & value, vec3_t<T> const & A) { 
+		return { A[0] * value, A[1] * value, A[2] * value };
+	}
+	template <typename T, typename U> inline vec3_t<T> operator / (vec3_t<T> const & A, U const & value) { 
+		return { A[0] / value, A[1] / value, A[2] / value };
+	}
 	
 //================================================================================================
 //------------------------------------------------------------------------------------------------
@@ -1029,7 +1055,7 @@ namespace asterid::brassica {
 //------------------------------------------------------------------------------------------------
 //================================================================================================
 
-	template <typename T> vec3_t<T> operator * (quaternion_t<T> const & q, vec3_t<T> const & v) {
+	template <typename T> inline vec3_t<T> operator * (quaternion_t<T> const & q, vec3_t<T> const & v) {
 		vec3_t<T> qv {q[0], q[1], q[2]};
 		vec3_t<T> w1 = vec3_t<T>::cross(v, qv) * static_cast<T>(2);
 		return v + w1 * q[3] + vec3_t<T>::cross(w1, qv);
@@ -1103,5 +1129,51 @@ namespace std {
 	template <typename T> std::string to_string(asterid::brassica::mat4_t<T> const & v) {
 		return v.to_string();
 	}
+}
+#endif
+
+#if BRASSICA_HASH_FUNCTIONS == 1
+namespace std {
+	template <typename T> struct hash<asterid::brassica::vec2_t<T>> {
+		size_t operator () (asterid::brassica::vec2_t<T> const & v) const {
+			return std::hash(v[0]) + std::hash(v[1]);
+		}
+	};
+	template <typename T> struct hash<asterid::brassica::vec3_t<T>> {
+		size_t operator () (asterid::brassica::vec3_t<T> const & v) const {
+			return std::hash(v[0]) + std::hash(v[1]) + std::hash(v[2]);
+		}
+	};
+	template <typename T> struct hash<asterid::brassica::vec4_t<T>> {
+		size_t operator () (asterid::brassica::vec4_t<T> const & v) const {
+			return std::hash(v[0]) + std::hash(v[1]) + std::hash(v[2]) + std::hash(v[3]);
+		}
+	};
+	template <typename T> struct hash<asterid::brassica::rect_t<T>> {
+		size_t operator () (asterid::brassica::rect_t<T> const & v) const {
+			return std::hash(v.origin) + std::hash(v.extents);
+		}
+	};
+	template <typename T> struct hash<asterid::brassica::quaternion_t<T>> {
+		size_t operator () (asterid::brassica::quaternion_t<T> const & v) const {
+			return std::hash(v[0]) + std::hash(v[1]) + std::hash(v[2]) + std::hash(v[3]);
+		}
+	};
+	template <typename T> struct hash<asterid::brassica::mat3_t<T>> {
+		size_t operator () (asterid::brassica::mat3_t<T> const & v) const {
+			size_t h = 0;
+			for (size_t i = 0; i < 3; i++) for (size_t j = 0; j < 3; j++)
+				h += std::hash(v[i][j]);
+			return h;
+		}
+	};
+	template <typename T> struct hash<asterid::brassica::mat4_t<T>> {
+		size_t operator () (asterid::brassica::mat4_t<T> const & v) const {
+			size_t h = 0;
+			for (size_t i = 0; i < 4; i++) for (size_t j = 0; j < 4; j++)
+				h += std::hash(v[i][j]);
+			return h;
+		}
+	};
 }
 #endif

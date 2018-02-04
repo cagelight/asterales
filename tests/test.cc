@@ -19,9 +19,13 @@ int main(int argc, char * * argv) {
 	std::string arg = argv[1];
 	if (arg == "buffer_assembly") {
 		tests::buffer_assembly_tests();
+	} else if (arg == "threadpool") {
+		tests::threadpool_tests();
+	} else if (arg == "codon") {
+		tests::codon_tests();
 	} else {
 		sciloge << "unknown argument: \"" << arg << "\"";
-		sciloge << "must be one of:\n> buffer_assembly";
+		sciloge << "must be one of:\n> buffer_assembly\n> codon\n> threadpool";
 		return 1;
 	}
 	return 0;
