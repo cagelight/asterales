@@ -18,7 +18,7 @@ namespace asterid {
 		typedef std::function<void(std::string const &)> logger_cb;
 		logger_cb cb;
 		std::string str;
-		inline streamlogger(logger_cb cb, std::string const & init = "") : cb(cb), str(init) {}
+		inline streamlogger(std::string const & init = "", logger_cb cb = [](std::string const & str){ printf("%s\n", str.c_str()); }) : cb(cb), str(init) {}
 		inline ~streamlogger() { cb(str); }
 		
 		inline streamlogger & operator << ( std::string const & other ) { str += other; return *this; }
