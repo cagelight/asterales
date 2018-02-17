@@ -13,6 +13,8 @@
 #include <thread>
 #include <vector>
 
+#include <stdexcept>
+
 #include <netinet/in.h>
 
 namespace asterid::cicada {
@@ -28,6 +30,8 @@ namespace asterid::cicada {
 		struct sendfile_notfound : public base {};
 		struct sendfile_notfile : public base {};
 		struct sendfile_badoffset : public base {};
+		
+		typedef std::runtime_error generic;
 	}
 	
 	struct socket {

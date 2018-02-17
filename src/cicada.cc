@@ -296,6 +296,9 @@ void server::worker_run() {
 			
 			try {
 				sig = inst->proto->ready(inst->con, d);
+			} catch (exception::generic const & e) {
+				printf("WARNING: a connection was terminated after catching a generic exception with the following message:\n%s\n", e.what());
+				sig.m |= signal::mask::terminate;
 			} catch (...) {
 				printf("WARNING: a connection was terminated after catching an uncaught exception\n");
 				sig.m |= signal::mask::terminate;
