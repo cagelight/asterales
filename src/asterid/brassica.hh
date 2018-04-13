@@ -162,11 +162,12 @@ namespace asterid::brassica {
 		inline T const & b() const { return data[2]; }
 		
 		vec3_t() = default;
-		vec3_t(T v) : data {v, v, v} {}
+		explicit vec3_t(T v) : data {v, v, v} {}
 		vec3_t(T x, T y, T z) : data {x, y, z} {}
 		vec3_t(vec3_t const &) = default;
 		vec3_t(vec3_t &&) = default;
 		template <typename U> vec3_t(vec3_t<U> const & other) { data[0] = other.data[0]; data[1] = other.data[1]; data[2] = other.data[2]; }
+		vec3_t(vec2_t<T> const & v, T z) : data {v.data[0], v.data[1], z} {}
 		
 		static inline T dot(vec3_t<T> const & A, vec3_t<T> const & B) {
 			return A.data[0] * B.data[0] + A.data[1] * B.data[1] + A.data[2] * B.data[2];
@@ -301,7 +302,7 @@ namespace asterid::brassica {
 		inline T const & a() const { return data[3]; }
 		
 		vec4_t() = default;
-		vec4_t(T v) : data {v, v, v, v} {}
+		explicit vec4_t(T v) : data {v, v, v, v} {}
 		vec4_t(T x, T y, T z, T w) : data {x, y, z, w} {}
 		vec4_t(vec4_t const &) = default;
 		vec4_t(vec4_t &&) = default;
@@ -327,6 +328,8 @@ namespace asterid::brassica {
 			T mag = magnitude();
 			return { data[0]/mag, data[1]/mag, data[2]/mag, data[3]/mag };
 		}
+		
+		inline vec3_t<T> xyz() const { return vec3_t<T> { data[0], data[1], data[2] }; }
 		
 		inline vec4_t<T> & operator = (vec4_t<T> const & other) = default;
 		inline vec4_t<T> & operator = (vec4_t<T> && other) = default;
@@ -372,7 +375,7 @@ namespace asterid::brassica {
 #endif
 	};
 	
-//================================================================================================
+//===========================================================================================m=====
 //------------------------------------------------------------------------------------------------
 //================================================================================================
 	
@@ -430,7 +433,7 @@ namespace asterid::brassica {
 		inline T & w() { return data[3]; }
 		
 		quaternion_t() = default;
-		quaternion_t(T const & x, T const & y, T const & z, T const & w) : data{x, y, z, w} {}
+		quaternion_t(T const & x, T const & y, T const & z, T const & w) : data{x, y, z, w} { normalize(); }
 		quaternion_t(vec3_t<T> const & axis, T const & angle) {
 			T a = angle/2;
 			T s = std::sin(a);
@@ -486,7 +489,7 @@ namespace asterid::brassica {
 		// CORRECTIONS -- always return quaternion needed to reach destination, not destination itself
 		// ================
 		
-		// LIMITERSrange_limit_up
+		// LIMITERS
 		
 		quaternion_t<T> range_limit_up(vec3_t<T> const & up_pre, T angle_lim, T lerp = static_cast<T>(1)) const {
 			vec3_t<T> up_q = -up_pre * conjugate();
@@ -507,9 +510,9 @@ namespace asterid::brassica {
 			
 			vec3_t<T> up_q = up_pre * conjugate();
 			up_q.normalize();
-			vec3_t<T> side = vec3_t<T>::cross({0, 0, 1}, -up_q);
+			vec3_t<T> side = vec3_t<T>::cross({0, 0, 1}, up_q);
 			side.normalize();
-			if (vec3_t<T>::dot({0, 1, 0}, up_q) <= 0) side = -side;
+			if (vec3_t<T>::dot({0, 1, 0}, up_q) > 0) side = -side;
 			vec3_t<T> up = vec3_t<T>::cross({0, 0, 1}, side);
 			up.normalize();
 			
@@ -517,13 +520,8 @@ namespace asterid::brassica {
 		}
 		
 		quaternion_t<T> look_at(vec3_t<T> const & origin, vec3_t<T> const & target, T lerp = static_cast<T>(1)) const {
-			
-			vec3_t<T> front_to = vec3_t<T> { target - origin };
-			front_to.normalize();
-			vec3_t<T> front_from = vec3_t<T> { 0, 0, 1 } * *this;
-			front_from.normalize();
-			
-			return vector_delta(front_from, front_to, lerp);
+			vec3_t<T> front_to = vec3_t<T> { target - origin } .normalized() * conjugate();
+			return vector_delta(vec3_t<T> { 0, 0, 1 }, front_to, lerp);
 		}
 		
 		// ================
@@ -907,9 +905,9 @@ namespace asterid::brassica {
 			return w;
 		}
 		
-		static mat4_t<T> perspective(T hfov, T width, T height, T near, T far) {
+		static mat4_t<T> perspective(T vfov, T width, T height, T near, T far) {
 			mat4_t<T> w {};
-			T t1 = 1 / std::tan(0.5 * hfov);
+			T t1 = 1 / std::tan(0.5 * vfov);
 			w[0][0] = t1 * (height / width);
 			w[1][1] = t1;
 			w[2][2] = (far + near) / (far - near);
@@ -971,7 +969,7 @@ namespace asterid::brassica {
 			mat.data[3][1] = data[0][1] * data[2][2] * data[3][0] - data[0][2] * data[2][1] * data[3][0] + data[0][2] * data[2][0] * data[3][1] - data[0][0] * data[2][2] * data[3][1] - data[0][1] * data[2][0] * data[3][2] + data[0][0] * data[2][1] * data[3][2];
 			mat.data[3][2] = data[0][2] * data[1][1] * data[3][0] - data[0][1] * data[1][2] * data[3][0] - data[0][2] * data[1][0] * data[3][1] + data[0][0] * data[1][2] * data[3][1] + data[0][1] * data[1][0] * data[3][2] - data[0][0] * data[1][1] * data[3][2];
 			mat.data[3][3] = data[0][1] * data[1][2] * data[2][0] - data[0][2] * data[1][1] * data[2][0] + data[0][2] * data[1][0] * data[2][1] - data[0][0] * data[1][2] * data[2][1] - data[0][1] * data[1][0] * data[2][2] + data[0][0] * data[1][1] * data[2][2];
-			mat.scale(1 / mat.determinant());
+			mat = mat * mat4_t<T>::scale( vec3_t {1 / mat.determinant()} );
 			return mat;
 		}
 		
@@ -1065,6 +1063,24 @@ namespace asterid::brassica {
 	}
 	template <typename T> inline vec3_t<T> & operator *= (vec3_t<T> & v, quaternion_t<T> const & q) {
 		v = q * v;
+	}
+	
+	template <typename T> inline vec4_t<T> operator * (mat4_t<T> const & m, vec4_t<T> const & v) {
+		return vec4_t {
+			v[0] * m[0][0] + v[1] * m[1][0] + v[2] * m [2][0] + v[3] * m[3][0],
+			v[0] * m[0][1] + v[1] * m[1][1] + v[2] * m [2][1] + v[3] * m[3][1],
+			v[0] * m[0][2] + v[1] * m[1][2] + v[2] * m [2][2] + v[3] * m[3][2],
+			v[0] * m[0][3] + v[1] * m[1][3] + v[2] * m [2][3] + v[3] * m[3][3],
+		};
+	}
+	
+	template <typename T> inline vec4_t<T> operator * (vec4_t<T> const & v, mat4_t<T> const & m) {
+		return vec4_t {
+			v[0] * m[0][0] + v[1] * m[0][1] + v[2] * m [0][2] + v[3] * m[0][3],
+			v[0] * m[1][0] + v[1] * m[1][1] + v[2] * m [1][2] + v[3] * m[1][3],
+			v[0] * m[2][0] + v[1] * m[2][1] + v[2] * m [2][2] + v[3] * m[2][3],
+			v[0] * m[3][0] + v[1] * m[3][1] + v[2] * m [3][2] + v[3] * m[3][3],
+		};
 	}
 	
 //================================================================================================
