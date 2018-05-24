@@ -35,6 +35,8 @@ namespace asterid {
 
 	typedef std::basic_string<char, insensitive_char_traits> istring;
 	typedef std::basic_string_view<istring> istring_view;
+	
+	inline istring istring_from_std_string(std::string const & str) { return {str.data()}; }
 }
 
 namespace std {

@@ -393,6 +393,7 @@ namespace asterid::brassica {
 		inline T const & y() const { return origin.y(); }
 		inline T const & width() const { return extents.width(); }
 		inline T const & height() const { return extents.height(); }
+		inline T ratio() const { return width() / height(); }
 		
 		inline rect_t() = default;
 		inline rect_t(T width, T height) : extents(width, height) {}
@@ -403,8 +404,77 @@ namespace asterid::brassica {
 		inline rect_t(rect_t<T> const & other) = default;
 		inline rect_t(rect_t<T> && other) = default;
 		
-		inline rect_t<T> & offset(vec2_t<T> v) { origin += v; return *this; }
-		inline rect_t<T> offsetted(vec2_t<T> v) const { return { origin + v, extents }; }
+		inline void center_in_x(rect_t<T> const & c) {
+			origin[0] = c.origin[0] + c.extents[0] / static_cast<T>(2) - extents[0] / static_cast<T>(2);
+		}
+		inline void center_in_y(rect_t<T> const & c) {
+			origin[1] = c.origin[1] + c.extents[1] / static_cast<T>(2) - extents[1] / static_cast<T>(2);
+		}
+		inline void center_in(rect_t<T> const & c) {
+			center_in_x(c);
+			center_in_y(c);
+		}
+		
+		inline void fit_in(rect_t<T> const & c) {
+			T fratio = ratio();
+			if (fratio > c.ratio()) {
+				extents[0] = c.width();
+				extents[1] = c.width() / fratio;
+			} else {
+				extents[0] = c.height() * fratio;
+				extents[1] = c.height();
+			}
+			center_in(c);
+		}
+		
+		inline void bound_in_x(rect_t<T> const & c) {
+			if (extents[0] < c.extents[0]) {
+				if (origin[0] < c.origin[0]) origin[0] = c.origin[0];
+				else if (origin[0] > c.origin[0] + c.extents[0] - extents[0]) origin[0] = c.origin[0] + c.extents[0] - extents[0];
+			} else if (extents[0] > c.extents[0]) {
+				if (origin[0] > c.origin[0]) origin[0] = c.origin[0];
+				else if (origin[0] < c.origin[0] + c.extents[0] - extents[0]) origin[0] = c.origin[0] + c.extents[0] - extents[0];
+			} else {
+				origin[0] = c.origin[0];
+			}
+		}
+		inline void bound_in_y(rect_t<T> const & c) {
+			if (extents[1] < c.extents[1]) {
+				if (origin[1] < c.origin[1]) origin[1] = c.origin[1];
+				else if (origin[1] > c.origin[1] + c.extents[1] - extents[1]) origin[1] = c.origin[1] + c.extents[1] - extents[1];
+			} else if (extents[1] > c.extents[1]) {
+				if (origin[1] > c.origin[1]) origin[1] = c.origin[1];
+				else if (origin[1] < c.origin[1] + c.extents[1] - extents[1]) origin[1] = c.origin[1] + c.extents[1] - extents[1];
+			} else {
+				origin[1] = c.origin[1];
+			}
+		}
+		inline void bound_in(rect_t<T> const & c) {
+			bound_in_x(c);
+			bound_in_y(c);
+		}
+		
+		/*
+		inline rect_t<T> fit_shrink_in(rect_t<T> const & container) const {
+			T fratio = ratio(), cratio = container.ratio();
+			if (fratio >= cratio && width() <= container.width()) return center_in(container);
+			if (fratio < cratio && height() <= container.height()) return center_in(container);
+			return fit_in(container);
+		}
+		
+		inline rect_t<T> fit_grow_in(rect_t<T> const & container) const {
+			T fratio = ratio(), cratio = container.ratio();
+			if (fratio >= cratio && width() >= container.width()) return center_in(container);
+			if (fratio < cratio && height() >= container.height()) return center_in(container);
+			return fit_in(container);
+		}
+		*/
+		
+		inline rect_t<T> & offset(vec2_t<T> const & v) { origin += v; return *this; }
+		inline rect_t<T> offsetted(vec2_t<T> const & v) const { return { origin + v, extents }; }
+		
+		inline rect_t<T> & scale(T const & v) { extents *= v; return *this; }
+		inline rect_t<T> scaled(T const & v) const { return {origin, extents * v}; }
 		
 		inline rect_t<T> & operator = (rect_t<T> const & other) = default;
 		inline bool operator == (rect_t<T> const & other) const { return origin == other.origin && extents = other.extents; }
@@ -1085,6 +1155,79 @@ namespace asterid::brassica {
 	
 //================================================================================================
 //------------------------------------------------------------------------------------------------
+//================================================================================================'
+
+	namespace la {
+		
+		template <typename T> struct plane_t;
+		
+		template <typename T> struct ray_t {
+			
+			vec3_t<T> origin;
+			vec3_t<T> direction;
+			
+			ray_t(vec3_t<T> const & origin, vec3_t<T> const & direction) : origin(origin), direction(direction) {}
+			ray_t(ray_t const &) = default;
+			ray_t(ray_t &&) = default;
+			static inline ray_t<T> from_points(vec3_t<T> start, vec3_t<T> end) {
+				vec3_t<T> dir = end - start;
+				dir.normalize();
+				return {start, dir};
+			}
+			
+			vec3_t<T> intersect(plane_t<T> const & p) {
+				T d = vec3_t<T>::dot(p.normal * p.dist - origin, p.normal) / vec3_t<T>::dot(direction, p.normal);
+				return origin + direction * d;
+			}
+			
+			bool intersect(plane_t<T> const & p, vec3_t<T> & intersect_out) {
+				T d1 = vec3_t<T>::dot(direction, p.normal);
+				if (std::abs(d1) <= std::numeric_limits<T>::epsilon) return false;
+				T d2 = vec3_t<T>::dot(p.normal * p.dist - origin, p.normal) / d1;
+				intersect_out = origin + direction * d2;
+				return true;
+			}
+			
+			#if BRASSICA_PRINT_FUNCTIONS == 1
+					std::string to_string() const {
+						return "RAY[" + 
+						origin.to_string() + ", " + 
+						direction.to_string() + "]";
+					}
+			#endif
+		};
+		
+		template <typename T> struct plane_t {
+			
+			vec3_t<T> normal;
+			T dist;
+			
+			plane_t(vec3_t<T> const & normal, T const & dist) : normal(normal), dist(dist) {}
+			plane_t(plane_t const &) = default;
+			plane_t(plane_t &&) = default;
+			plane_t(vec3_t<T> const & A, vec3_t<T> const & B, vec3_t<T> const & C) : normal { vec3_t<T>::cross(A - B, A - C).normalized() }, dist { vec3_t<T>::dot(A, normal) } {
+				if (dist < 0) {
+					normal = -normal;
+					dist = -dist;
+				}
+			}
+			
+			inline plane_t & operator = (plane_t const &) = default;
+			inline plane_t & operator = (plane_t &&) = default;
+			
+			#if BRASSICA_PRINT_FUNCTIONS == 1
+					std::string to_string() const {
+						return "PLANE[" + 
+						normal.to_string() + ", " + 
+						std::to_string(dist) + "]";
+					}
+			#endif
+		};
+		
+	}
+
+//================================================================================================
+//------------------------------------------------------------------------------------------------
 //================================================================================================
 
 	template <typename T> struct pascal_triangle {
@@ -1143,6 +1286,12 @@ namespace std {
 		return v.to_string();
 	}
 	template <typename T> std::string to_string(asterid::brassica::mat4_t<T> const & v) {
+		return v.to_string();
+	}
+	template <typename T> std::string to_string(asterid::brassica::la::ray_t<T> const & v) {
+		return v.to_string();
+	}
+	template <typename T> std::string to_string(asterid::brassica::la::plane_t<T> const & v) {
 		return v.to_string();
 	}
 }

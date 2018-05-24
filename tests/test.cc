@@ -13,7 +13,7 @@ void util::log(log_level, std::string const & str) {
 
 int main(int argc, char * * argv) {
 	if (argc != 2) {
-		sciloge << "1 argument is required";
+		tlog << "1 argument is required";
 		return 1;
 	}
 	std::string arg = argv[1];
@@ -23,9 +23,13 @@ int main(int argc, char * * argv) {
 		tests::threadpool_tests();
 	} else if (arg == "codon") {
 		tests::codon_tests();
+	} else if (arg == "brassica") {
+		tests::brassica_tests();
+	} else if (arg == "strop") {
+		tests::strop_tests();
 	} else {
-		sciloge << "unknown argument: \"" << arg << "\"";
-		sciloge << "must be one of:\n> buffer_assembly\n> codon\n> threadpool";
+		tlog << "unknown argument: \"" << arg << "\"";
+		tlog << "must be one of:\n> brassica\n> buffer_assembly\n> codon\n> strop\n> threadpool";
 		return 1;
 	}
 	return 0;

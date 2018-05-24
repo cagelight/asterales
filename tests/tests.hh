@@ -3,12 +3,16 @@
 #include <cassert>
 #include <string>
 
+#include "asterid/strop.hh"
+
 #define TEST(cond) assert(cond)
 
 namespace tests {
 	void buffer_assembly_tests();
 	void threadpool_tests();
 	void codon_tests();
+	void brassica_tests();
+	void strop_tests();
 }
 
 namespace util {
@@ -30,11 +34,5 @@ namespace util {
 	};
 }
 
-#define scilog(prefix, lev) util::cilogger { lev, #prefix ": " }
-#define scilogv(prefix, lev) util:::cilogger { lev, asterid::strf("%s (%s): ", #prefix, _as_here) }
-#define scilogi scilog(INFO, util::log_level::info)
-#define scilogvi scilogv(INFO, util::log_level::info)
-#define scilogw scilog(WARNING, util::log_level::warning)
-#define scilogvw scilogv(WARNING, util::log_level::warning)
-#define sciloge scilog(ERROR, util::log_level::error)
-#define scilogve scilogv(ERROR, util::log_level::error)
+#define tlog asterid::streamlogger {"", [](std::string const & str){ printf("%s\n", str.c_str()); }}
+#define tlogi asterid::streamlogger {"", [](std::string const & str){ printf("%s", str.c_str()); fflush(stdout); }}
