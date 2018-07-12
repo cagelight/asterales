@@ -119,7 +119,7 @@ namespace asterid::cicada {
 		};
 		
 		server() = delete;
-		server(bool create_master_thread = true, unsigned int workers = std::thread::hardware_concurrency());
+		server(bool create_master_thread = false, unsigned int workers = std::thread::hardware_concurrency());
 		server(uint16_t port, bool create_master_thread = true, unsigned int workers = std::thread::hardware_concurrency());
 		server(server const &) = delete;
 		server(server &&) = delete;
@@ -173,7 +173,6 @@ namespace asterid::cicada {
 		std::unordered_map<uint16_t, std::unique_ptr<listener>> services;
 		asterid::spinlock service_lock;
 		
-		//std::forward_list<std::shared_ptr<instance>> instances;
 		std::unordered_map<int, std::shared_ptr<instance>> instances;
 		asterid::rw_spinlock instance_lock;
 		

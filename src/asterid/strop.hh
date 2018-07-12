@@ -6,6 +6,8 @@
 #include <vector>
 #include <cstdint>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 
 namespace asterid {
 	
@@ -296,6 +298,21 @@ namespace asterid {
 			if (*a_i++ != *b_i++) return false;
 		}
 		return true;
+	}
+	
+	inline std::string human_readable_size(size_t bytes) {
+		if (bytes < 2048) return std::to_string(bytes) + " B";
+		std::stringstream ss; ss << std::fixed << std::showpoint << std::setprecision(2);
+		if (bytes < 2097152) {
+			ss << bytes / 1024.0 << " KiB";
+			return ss.str();
+		}
+		if (bytes < 2147483648) {
+			ss << bytes / 1048576.0 << " MiB";
+			return ss.str();
+		}
+		ss << bytes / 1073741824.0 << " GiB";
+		return ss.str();
 	}
 	
 }
