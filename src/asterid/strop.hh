@@ -226,9 +226,11 @@ namespace asterid {
 	
 	// ================================
 	
-	template <typename T, typename TT = decltype(T::value_type)> T replace(T const & c, TT const & v) {
-		
+	template <typename T, typename TT = decltype(T::value_type)> void replace(T & v, TT const & from, TT const & to) {
+		for (TT & i : v) if (i == from) i = to;
 	}
+	
+	// ================================
 	
 	template <typename T, typename TT = decltype(T::value_type)> void trim(T & v, TT tv) {
 		while (v.size() && *v.begin() == tv) v.erase(v.begin());

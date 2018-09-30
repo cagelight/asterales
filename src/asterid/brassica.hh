@@ -69,23 +69,23 @@ namespace asterid::brassica {
 		typedef T length_t;
 		T data [2] {0, 0};
 		
-		inline T & x() { return data[0]; }
-		inline T & y() { return data[1]; }
-		inline T & width() { return data[0]; }
-		inline T & height() { return data[1]; }
-		inline T const & x() const { return data[0]; }
-		inline T const & y() const { return data[1]; }
-		inline T const & width() const { return data[0]; }
-		inline T const & height() const { return data[1]; }
+		constexpr T & x() { return data[0]; }
+		constexpr T & y() { return data[1]; }
+		constexpr T & width() { return data[0]; }
+		constexpr T & height() { return data[1]; }
+		constexpr T const & x() const { return data[0]; }
+		constexpr T const & y() const { return data[1]; }
+		constexpr T const & width() const { return data[0]; }
+		constexpr T const & height() const { return data[1]; }
 		
-		vec2_t() = default;
-		vec2_t(T v) : data {v, v} {}
-		vec2_t(T x, T y) : data {x, y} {}
-		vec2_t(vec2_t const &) = default;
-		vec2_t(vec2_t &&) = default;
-		template <typename U> vec2_t(vec2_t<U> const & other) { data[0] = other.data[0]; data[1] = other.data[1]; }
+		constexpr vec2_t() = default;
+		constexpr vec2_t(T x, T y) : data {x, y} {}
+		constexpr explicit vec2_t(T v) : data {v, v} {}
+		constexpr vec2_t(vec2_t const &) = default;
+		constexpr vec2_t(vec2_t &&) = default;
+		template <typename U> constexpr vec2_t(vec2_t<U> const & other) { data[0] = other.data[0]; data[1] = other.data[1]; }
 		
-		static inline T dot(vec2_t<T> const & A, vec2_t<T> const & B) {
+		static constexpr T dot(vec2_t<T> const & A, vec2_t<T> const & B) {
 			return A.data[0] * B.data[0] + A.data[1] * B.data[1];
 		}
 		
@@ -103,29 +103,29 @@ namespace asterid::brassica {
 			return { data[0]/mag, data[1]/mag };
 		}
 		
-		inline vec2_t<T> & operator = (vec2_t<T> const & other) = default;
+		constexpr vec2_t<T> & operator = (vec2_t<T> const & other) = default;
 		
-		inline bool operator == (vec2_t<T> const & other) const { return data[0] == other.data[0] && data[1] == other.data[1]; }
+		constexpr bool operator == (vec2_t<T> const & other) const { return data[0] == other.data[0] && data[1] == other.data[1]; }
 		
-		inline vec2_t<T> operator + (vec2_t<T> const & other) const { return {data[0] + other.data[0], data[1] + other.data[1]}; }
-		inline vec2_t<T> operator + (T const & value) const { return {data[0] + value, data[1] + value}; }
-		inline vec2_t<T> operator - (vec2_t<T> const & other) const { return {data[0] - other.data[0], data[1] - other.data[1]}; }
-		inline vec2_t<T> operator - (T const & value) const { return {data[0] - value, data[1] - value}; }
-		inline T operator * (vec2_t<T> const & other) const { return dot(*this, other); }
-		inline vec2_t<T> operator * (T const & value) const { return { data[0] * value, data[1] * value }; }
-		inline vec2_t<T> operator / (T const & value) const { return { data[0] / value, data[1] / value }; }
+		constexpr vec2_t<T> operator + (vec2_t<T> const & other) const { return {data[0] + other.data[0], data[1] + other.data[1]}; }
+		constexpr vec2_t<T> operator + (T const & value) const { return {data[0] + value, data[1] + value}; }
+		constexpr vec2_t<T> operator - (vec2_t<T> const & other) const { return {data[0] - other.data[0], data[1] - other.data[1]}; }
+		constexpr vec2_t<T> operator - (T const & value) const { return {data[0] - value, data[1] - value}; }
+		constexpr T operator * (vec2_t<T> const & other) const { return dot(*this, other); }
+		constexpr vec2_t<T> operator * (T const & value) const { return { data[0] * value, data[1] * value }; }
+		constexpr vec2_t<T> operator / (T const & value) const { return { data[0] / value, data[1] / value }; }
 		
-		inline vec2_t<T> & operator += (vec2_t<T> const & other) { data[0] += other.data[0]; data[1] += other.data[1]; return *this; }
-		inline vec2_t<T> & operator += (T const & value) { data[0] += value; data[1] += value; return *this; }
-		inline vec2_t<T> & operator -= (vec2_t<T> const & other) { data[0] -= other.data[0]; data[1] -= other.data[1]; return *this; }
-		inline vec2_t<T> & operator -= (T const & value) { data[0] -= value; data[1] -= value; return *this; }
-		inline vec2_t<T> & operator *= (T const & value) { data[0] *= value; data[1] *= value; return *this; }
-		inline vec2_t<T> & operator /= (T const & value) { data[0] /= value; data[1] /= value; return *this; }
+		constexpr vec2_t<T> & operator += (vec2_t<T> const & other) { data[0] += other.data[0]; data[1] += other.data[1]; return *this; }
+		constexpr vec2_t<T> & operator += (T const & value) { data[0] += value; data[1] += value; return *this; }
+		constexpr vec2_t<T> & operator -= (vec2_t<T> const & other) { data[0] -= other.data[0]; data[1] -= other.data[1]; return *this; }
+		constexpr vec2_t<T> & operator -= (T const & value) { data[0] -= value; data[1] -= value; return *this; }
+		constexpr vec2_t<T> & operator *= (T const & value) { data[0] *= value; data[1] *= value; return *this; }
+		constexpr vec2_t<T> & operator /= (T const & value) { data[0] /= value; data[1] /= value; return *this; }
 		
-		template <typename U> vec2_t<T> operator = (vec2_t<U> const & other) { data[0] = other.data[0]; data[1] = other.data[1]; return *this; }
+		template <typename U> constexpr vec2_t<T> operator = (vec2_t<U> const & other) { data[0] = other.data[0]; data[1] = other.data[1]; return *this; }
 		
-		inline T & operator [] (size_t i) { return data[i]; }
-		inline T const & operator [] (size_t i) const { return data[i]; }
+		constexpr T & operator [] (size_t i) { return data[i]; }
+		constexpr T const & operator [] (size_t i) const { return data[i]; }
 		
 #if BRASSICA_PRINT_FUNCTIONS == 1
 		std::string to_string() const {
@@ -142,38 +142,38 @@ namespace asterid::brassica {
 		
 		typedef T length_t;
 		T data [3] {0, 0, 0};
-		inline T & x() { return data[0]; }
-		inline T & y() { return data[1]; }
-		inline T & z() { return data[2]; }
-		inline T const & x() const { return data[0]; }
-		inline T const & y() const { return data[1]; }
-		inline T const & z() const { return data[2]; }
-		inline T & yaw() { return data[0]; }
-		inline T & pitch() { return data[1]; }
-		inline T & roll() { return data[2]; }
-		inline T const & yaw() const { return data[0]; }
-		inline T const & pitch() const { return data[1]; }
-		inline T const & roll() const { return data[2]; }
-		inline T & r() { return data[0]; }
-		inline T & g() { return data[1]; }
-		inline T & b() { return data[2]; }
-		inline T const & r() const { return data[0]; }
-		inline T const & g() const { return data[1]; }
-		inline T const & b() const { return data[2]; }
+		constexpr T & x() { return data[0]; }
+		constexpr T & y() { return data[1]; }
+		constexpr T & z() { return data[2]; }
+		constexpr T const & x() const { return data[0]; }
+		constexpr T const & y() const { return data[1]; }
+		constexpr T const & z() const { return data[2]; }
+		constexpr T & yaw() { return data[0]; }
+		constexpr T & pitch() { return data[1]; }
+		constexpr T & roll() { return data[2]; }
+		constexpr T const & yaw() const { return data[0]; }
+		constexpr T const & pitch() const { return data[1]; }
+		constexpr T const & roll() const { return data[2]; }
+		constexpr T & r() { return data[0]; }
+		constexpr T & g() { return data[1]; }
+		constexpr T & b() { return data[2]; }
+		constexpr T const & r() const { return data[0]; }
+		constexpr T const & g() const { return data[1]; }
+		constexpr T const & b() const { return data[2]; }
 		
-		vec3_t() = default;
-		explicit vec3_t(T v) : data {v, v, v} {}
-		vec3_t(T x, T y, T z) : data {x, y, z} {}
-		vec3_t(vec3_t const &) = default;
-		vec3_t(vec3_t &&) = default;
-		template <typename U> vec3_t(vec3_t<U> const & other) { data[0] = other.data[0]; data[1] = other.data[1]; data[2] = other.data[2]; }
-		vec3_t(vec2_t<T> const & v, T z) : data {v.data[0], v.data[1], z} {}
+		constexpr vec3_t() = default;
+		constexpr vec3_t(T x, T y, T z) : data {x, y, z} {}
+		constexpr explicit vec3_t(T v) : data {v, v, v} {}
+		constexpr vec3_t(vec3_t const &) = default;
+		constexpr vec3_t(vec3_t &&) = default;
+		template <typename U> constexpr vec3_t(vec3_t<U> const & other) { data[0] = other.data[0]; data[1] = other.data[1]; data[2] = other.data[2]; }
+		constexpr vec3_t(vec2_t<T> const & v, T z) : data {v.data[0], v.data[1], z} {}
 		
-		static inline T dot(vec3_t<T> const & A, vec3_t<T> const & B) {
+		static constexpr T dot(vec3_t<T> const & A, vec3_t<T> const & B) {
 			return A.data[0] * B.data[0] + A.data[1] * B.data[1] + A.data[2] * B.data[2];
 		}
 		
-		static vec3_t<T> cross(vec3_t<T> const & A, vec3_t<T> const & B) {
+		static constexpr vec3_t<T> cross(vec3_t<T> const & A, vec3_t<T> const & B) {
 			return {
 				A.data[1] * B.data[2] - A.data[2] * B.data[1],
 				A.data[2] * B.data[0] - A.data[0] * B.data[2],
@@ -196,11 +196,11 @@ namespace asterid::brassica {
 			return { data[0]/mag, data[1]/mag, data[2]/mag };
 		}
 		
-		inline bool is_null() const {
+		constexpr bool is_null() const {
 			return data[0] == 0 && data[1] == 0 && data[2] == 0;
 		}
 		
-		inline bool is_cardinal() const {
+		constexpr bool is_cardinal() const {
 			bool cv = false;
 			for (size_t i = 0; i < 3; i++) {
 				switch (data[i]) {
@@ -218,13 +218,13 @@ namespace asterid::brassica {
 			return cv;
 		}
 		
-		inline vec3_t<T> & operator = (vec3_t<T> const & other) = default;
-		inline vec3_t<T> & operator = (vec3_t<T> && other) = default;
+		constexpr vec3_t<T> & operator = (vec3_t<T> const & other) = default;
+		constexpr vec3_t<T> & operator = (vec3_t<T> && other) = default;
 		
-		inline bool operator == (vec3_t<T> const & other) const { return data[0] == other.data[0] && data[1] == other.data[1] && data[2] == other.data[2]; }
-		inline vec3_t<T> operator + (vec3_t<T> const & other) const { return { data[0] + other.data[0], data[1] + other.data[1], data[2] + other.data[2] }; }
-		inline vec3_t<T> operator - (vec3_t<T> const & other) const { return { data[0] - other.data[0], data[1] - other.data[1], data[2] - other.data[2] }; }
-		inline vec3_t<T> operator * (mat4_t<T> const & mat) const {
+		constexpr bool operator == (vec3_t<T> const & other) const { return data[0] == other.data[0] && data[1] == other.data[1] && data[2] == other.data[2]; }
+		constexpr vec3_t<T> operator + (vec3_t<T> const & other) const { return { data[0] + other.data[0], data[1] + other.data[1], data[2] + other.data[2] }; }
+		constexpr vec3_t<T> operator - (vec3_t<T> const & other) const { return { data[0] - other.data[0], data[1] - other.data[1], data[2] - other.data[2] }; }
+		constexpr vec3_t<T> operator * (mat4_t<T> const & mat) const {
 			return {
 				data[0] * mat[0][0] + data[1] * mat[1][0] + data[2] * mat[2][0] + mat[3][0],
 				data[0] * mat[0][1] + data[1] * mat[1][1] + data[2] * mat[2][1] + mat[3][1],
@@ -232,23 +232,23 @@ namespace asterid::brassica {
 			};
 		}
 		
-		inline vec3_t<T> & operator += (vec3_t<T> const & other) { data[0] += other.data[0]; data[1] += other.data[1]; data[2] += other.data[2]; return *this; }
-		inline vec3_t<T> & operator += (T const & value) { data[0] += value; data[1] += value; data[2] += value; return *this; }
-		inline vec3_t<T> & operator -= (vec3_t<T> const & other) { data[0] -= other.data[0]; data[1] -= other.data[1]; data[2] -= other.data[2]; return *this; }
-		inline vec3_t<T> & operator -= (T const & value) { data[0] -= value; data[1] -= value; data[2] -= value; return *this; }
-		inline vec3_t<T> & operator *= (T const & value) { data[0] *= value; data[1] *= value; data[2] *= value; return *this; }
-		inline vec3_t<T> & operator *= (mat4_t<T> const & mat) {
+		constexpr vec3_t<T> & operator += (vec3_t<T> const & other) { data[0] += other.data[0]; data[1] += other.data[1]; data[2] += other.data[2]; return *this; }
+		constexpr vec3_t<T> & operator += (T const & value) { data[0] += value; data[1] += value; data[2] += value; return *this; }
+		constexpr vec3_t<T> & operator -= (vec3_t<T> const & other) { data[0] -= other.data[0]; data[1] -= other.data[1]; data[2] -= other.data[2]; return *this; }
+		constexpr vec3_t<T> & operator -= (T const & value) { data[0] -= value; data[1] -= value; data[2] -= value; return *this; }
+		constexpr vec3_t<T> & operator *= (T const & value) { data[0] *= value; data[1] *= value; data[2] *= value; return *this; }
+		constexpr vec3_t<T> & operator *= (mat4_t<T> const & mat) {
 			operator = ( operator * (mat) );
 			return *this;
 		}
-		inline vec3_t<T> & operator /= (T const & value) { data[0] /= value; data[1] /= value; data[2] /= value; return *this; }
+		constexpr vec3_t<T> & operator /= (T const & value) { data[0] /= value; data[1] /= value; data[2] /= value; return *this; }
 		
-		template <typename U> vec3_t<T> & operator = (vec3_t<U> const & other) { data[0] = other.data[0]; data[1] = other.data[1]; data[2] = other.data[2]; return *this; }
+		template <typename U> constexpr vec3_t<T> & operator = (vec3_t<U> const & other) { data[0] = other.data[0]; data[1] = other.data[1]; data[2] = other.data[2]; return *this; }
 		
-		inline T & operator [] (size_t i) { return data[i]; }
-		inline T const & operator [] (size_t i) const { return data[i]; }
+		constexpr T & operator [] (size_t i) { return data[i]; }
+		constexpr T const & operator [] (size_t i) const { return data[i]; }
 		
-		inline vec3_t<T> operator - () const { return {-x(), -y(), -z()}; }
+		constexpr vec3_t<T> operator - () const { return {-x(), -y(), -z()}; }
 		
 #if BRASSICA_PRINT_FUNCTIONS == 1
 		std::string to_string() const {
@@ -257,22 +257,22 @@ namespace asterid::brassica {
 #endif
 	};
 	
-	template <typename T, typename U> inline vec3_t<T> operator + (vec3_t<T> const & A, U const & value) { 
+	template <typename T, typename U> constexpr vec3_t<T> operator + (vec3_t<T> const & A, U const & value) { 
 		return { A[0] + value, A[1] + value, A[2] + value };
 	}
-	template <typename T, typename U> inline vec3_t<T> operator + (U const & value, vec3_t<T> const & A) { 
+	template <typename T, typename U> constexpr vec3_t<T> operator + (U const & value, vec3_t<T> const & A) { 
 		return { A[0] + value, A[1] + value, A[2] + value };
 	}
-	template <typename T, typename U> inline vec3_t<T> operator - (vec3_t<T> const & A, U const & value) { 
+	template <typename T, typename U> constexpr vec3_t<T> operator - (vec3_t<T> const & A, U const & value) { 
 		return { A[0] - value, A[1] - value, A[2] - value };
 	}
-	template <typename T, typename U> inline vec3_t<T> operator * (vec3_t<T> const & A, U const & value) { 
+	template <typename T, typename U> constexpr vec3_t<T> operator * (vec3_t<T> const & A, U const & value) { 
 		return { A[0] * value, A[1] * value, A[2] * value };
 	}
-	template <typename T, typename U> inline vec3_t<T> operator * (U const & value, vec3_t<T> const & A) { 
+	template <typename T, typename U> constexpr vec3_t<T> operator * (U const & value, vec3_t<T> const & A) { 
 		return { A[0] * value, A[1] * value, A[2] * value };
 	}
-	template <typename T, typename U> inline vec3_t<T> operator / (vec3_t<T> const & A, U const & value) { 
+	template <typename T, typename U> constexpr vec3_t<T> operator / (vec3_t<T> const & A, U const & value) { 
 		return { A[0] / value, A[1] / value, A[2] / value };
 	}
 	
@@ -284,32 +284,32 @@ namespace asterid::brassica {
 		
 		typedef T length_t;
 		T data [4] {0, 0, 0, 0};
-		inline T & x() { return data[0]; }
-		inline T & y() { return data[1]; }
-		inline T & z() { return data[2]; }
-		inline T & w() { return data[3]; }
-		inline T const & x() const { return data[0]; }
-		inline T const & y() const { return data[1]; }
-		inline T const & z() const { return data[2]; }
-		inline T const & w() const { return data[3]; }
-		inline T & r() { return data[0]; }
-		inline T & g() { return data[1]; }
-		inline T & b() { return data[2]; }
-		inline T & a() { return data[3]; }
-		inline T const & r() const { return data[0]; }
-		inline T const & g() const { return data[1]; }
-		inline T const & b() const { return data[2]; }
-		inline T const & a() const { return data[3]; }
+		constexpr T & x() { return data[0]; }
+		constexpr T & y() { return data[1]; }
+		constexpr T & z() { return data[2]; }
+		constexpr T & w() { return data[3]; }
+		constexpr T const & x() const { return data[0]; }
+		constexpr T const & y() const { return data[1]; }
+		constexpr T const & z() const { return data[2]; }
+		constexpr T const & w() const { return data[3]; }
+		constexpr T & r() { return data[0]; }
+		constexpr T & g() { return data[1]; }
+		constexpr T & b() { return data[2]; }
+		constexpr T & a() { return data[3]; }
+		constexpr T const & r() const { return data[0]; }
+		constexpr T const & g() const { return data[1]; }
+		constexpr T const & b() const { return data[2]; }
+		constexpr T const & a() const { return data[3]; }
 		
-		vec4_t() = default;
-		explicit vec4_t(T v) : data {v, v, v, v} {}
-		vec4_t(T x, T y, T z, T w) : data {x, y, z, w} {}
-		vec4_t(vec4_t const &) = default;
-		vec4_t(vec4_t &&) = default;
-		template <typename U> vec4_t(vec4_t<U> const & other) { data[0] = other.data[0]; data[1] = other.data[1]; data[2] = other.data[2]; data[3] = other.data[3]; }
-		vec4_t(vec3_t<T> const & v, T w) : data {v.data[0], v.data[1], v.data[2], w} {}
+		constexpr vec4_t() = default;
+		constexpr vec4_t(T x, T y, T z, T w) : data {x, y, z, w} {}
+		constexpr explicit vec4_t(T v) : data {v, v, v, v} {}
+		constexpr vec4_t(vec4_t const &) = default;
+		constexpr vec4_t(vec4_t &&) = default;
+		template <typename U> constexpr vec4_t(vec4_t<U> const & other) { data[0] = other.data[0]; data[1] = other.data[1]; data[2] = other.data[2]; data[3] = other.data[3]; }
+		constexpr vec4_t(vec3_t<T> const & v, T w) : data {v.data[0], v.data[1], v.data[2], w} {}
 		
-		static inline T dot(vec4_t<T> const & A, vec4_t<T> const & B) {
+		static constexpr T dot(vec4_t<T> const & A, vec4_t<T> const & B) {
 			return A.data[0] * B.data[0] + A.data[1] * B.data[1] + A.data[2] * B.data[2] + A.data[3] * B.data[3];
 		}
 		
@@ -329,18 +329,18 @@ namespace asterid::brassica {
 			return { data[0]/mag, data[1]/mag, data[2]/mag, data[3]/mag };
 		}
 		
-		inline vec3_t<T> xyz() const { return vec3_t<T> { data[0], data[1], data[2] }; }
+		constexpr vec3_t<T> xyz() const { return vec3_t<T> { data[0], data[1], data[2] }; }
 		
-		inline vec4_t<T> & operator = (vec4_t<T> const & other) = default;
-		inline vec4_t<T> & operator = (vec4_t<T> && other) = default;
+		constexpr vec4_t<T> & operator = (vec4_t<T> const & other) = default;
+		constexpr vec4_t<T> & operator = (vec4_t<T> && other) = default;
 		
-		inline bool operator == (vec4_t<T> const & other) const { return data[0] == other.data[0] && data[1] == other.data[1] && data[2] == other.data[2] && data[3] == other.data[3]; }
-		inline vec4_t<T> operator + (vec4_t<T> const & other) const { return { data[0] + other.data[0], data[1] + other.data[1], data[2] + other.data[2], data[3] + other.data[3] }; }
-		inline vec4_t<T> operator + (T const & value) const { return { data[0] + value, data[1] + value, data[2] + value, data[3] + value }; }
-		inline vec4_t<T> operator - (vec4_t<T> const & other) const { return { data[0] - other.data[0], data[1] - other.data[1], data[2] - other.data[2], data[3] - other.data[3] }; }
-		inline vec4_t<T> operator - (T const & value) const { return { data[0] - value, data[1] - value, data[2] - value, data[3] - value }; }
-		inline vec4_t<T> operator * (T const & value) const { return { data[0] * value, data[1] * value, data[2] * value, data[3] * value }; }
-		inline vec4_t<T> operator * (mat4_t<T> const & mat) const {
+		constexpr bool operator == (vec4_t<T> const & other) const { return data[0] == other.data[0] && data[1] == other.data[1] && data[2] == other.data[2] && data[3] == other.data[3]; }
+		constexpr vec4_t<T> operator + (vec4_t<T> const & other) const { return { data[0] + other.data[0], data[1] + other.data[1], data[2] + other.data[2], data[3] + other.data[3] }; }
+		constexpr vec4_t<T> operator + (T const & value) const { return { data[0] + value, data[1] + value, data[2] + value, data[3] + value }; }
+		constexpr vec4_t<T> operator - (vec4_t<T> const & other) const { return { data[0] - other.data[0], data[1] - other.data[1], data[2] - other.data[2], data[3] - other.data[3] }; }
+		constexpr vec4_t<T> operator - (T const & value) const { return { data[0] - value, data[1] - value, data[2] - value, data[3] - value }; }
+		constexpr vec4_t<T> operator * (T const & value) const { return { data[0] * value, data[1] * value, data[2] * value, data[3] * value }; }
+		constexpr vec4_t<T> operator * (mat4_t<T> const & mat) const {
 			return {
 				data[0] * mat[0][0] + data[1] * mat[1][0] + data[2] * mat[2][0] + data[3] * mat[3][0],
 				data[0] * mat[0][1] + data[1] * mat[1][1] + data[2] * mat[2][1] + data[3] * mat[3][1],
@@ -348,25 +348,25 @@ namespace asterid::brassica {
 				data[0] * mat[0][3] + data[1] * mat[1][3] + data[2] * mat[2][3] + data[3] * mat[3][3],
 			};
 		}
-		inline vec4_t<T> operator / (T const & value) const { return { data[0] / value, data[1] / value, data[2] / value, data[3] / value }; }
+		constexpr vec4_t<T> operator / (T const & value) const { return { data[0] / value, data[1] / value, data[2] / value, data[3] / value }; }
 		
-		inline vec4_t<T> & operator += (vec4_t<T> const & other) { data[0] += other.data[0]; data[1] += other.data[1]; data[2] += other.data[2]; data[3] += other.data[3]; return *this; }
-		inline vec4_t<T> & operator += (T const & value) { data[0] += value; data[1] += value; data[2] += value; data[3] += value; return *this; }
-		inline vec4_t<T> & operator -= (vec4_t<T> const & other) { data[0] -= other.data[0]; data[1] -= other.data[1]; data[2] -= other.data[2]; data[3] -= other.data[3]; return *this; }
-		inline vec4_t<T> & operator -= (T const & value) { data[0] -= value; data[1] -= value; data[2] -= value; data[3] -= value; return *this; }
-		inline vec4_t<T> & operator *= (T const & value) { data[0] *= value; data[1] *= value; data[2] *= value; data[3] *= value; return *this; }
-		inline vec4_t<T> & operator *= (mat4_t<T> const & mat) {
+		constexpr vec4_t<T> & operator += (vec4_t<T> const & other) { data[0] += other.data[0]; data[1] += other.data[1]; data[2] += other.data[2]; data[3] += other.data[3]; return *this; }
+		constexpr vec4_t<T> & operator += (T const & value) { data[0] += value; data[1] += value; data[2] += value; data[3] += value; return *this; }
+		constexpr vec4_t<T> & operator -= (vec4_t<T> const & other) { data[0] -= other.data[0]; data[1] -= other.data[1]; data[2] -= other.data[2]; data[3] -= other.data[3]; return *this; }
+		constexpr vec4_t<T> & operator -= (T const & value) { data[0] -= value; data[1] -= value; data[2] -= value; data[3] -= value; return *this; }
+		constexpr vec4_t<T> & operator *= (T const & value) { data[0] *= value; data[1] *= value; data[2] *= value; data[3] *= value; return *this; }
+		constexpr vec4_t<T> & operator *= (mat4_t<T> const & mat) {
 			operator = ( operator * (mat) );
 			return *this;
 		}
-		inline vec4_t<T> & operator /= (T const & value) { data[0] /= value; data[1] /= value; data[2] /= value; data[3] /= value; return *this; }
+		constexpr vec4_t<T> & operator /= (T const & value) { data[0] /= value; data[1] /= value; data[2] /= value; data[3] /= value; return *this; }
 		
-		template <typename U> vec4_t<T> & operator = (vec4_t<U> const & other) { data[0] = other.data[0]; data[1] = other.data[1]; data[2] = other.data[2]; data[3] = other.data[3]; return *this; }
+		template <typename U> constexpr vec4_t<T> & operator = (vec4_t<U> const & other) { data[0] = other.data[0]; data[1] = other.data[1]; data[2] = other.data[2]; data[3] = other.data[3]; return *this; }
 		
-		inline T & operator [] (size_t i) { return data[i]; }
-		inline T const & operator [] (size_t i) const { return data[i]; }
+		constexpr T & operator [] (size_t i) { return data[i]; }
+		constexpr T const & operator [] (size_t i) const { return data[i]; }
 		
-		inline vec4_t<T> operator - () const { return {-x(), -y(), -z(), -w()}; }
+		constexpr vec4_t<T> operator - () const { return {-x(), -y(), -z(), -w()}; }
 		
 #if BRASSICA_PRINT_FUNCTIONS == 1
 		std::string to_string() const {
@@ -497,12 +497,12 @@ namespace asterid::brassica {
 	
 	template <typename T> struct quaternion_t {
 		T data [4] {0, 0, 0, 1};
-		inline T & x() { return data[0]; }
-		inline T & y() { return data[1]; }
-		inline T & z() { return data[2]; }
-		inline T & w() { return data[3]; }
+		constexpr T & x() { return data[0]; }
+		constexpr T & y() { return data[1]; }
+		constexpr T & z() { return data[2]; }
+		constexpr T & w() { return data[3]; }
 		
-		quaternion_t() = default;
+		constexpr quaternion_t() = default;
 		quaternion_t(T const & x, T const & y, T const & z, T const & w) : data{x, y, z, w} { normalize(); }
 		quaternion_t(vec3_t<T> const & axis, T const & angle) {
 			T a = angle/2;
@@ -513,14 +513,14 @@ namespace asterid::brassica {
 			data[3] = std::cos(a);
 			normalize();
 		}
-		quaternion_t(quaternion_t const &) = default;
-		quaternion_t(quaternion_t &&) = default;
+		constexpr quaternion_t(quaternion_t const &) = default;
+		constexpr quaternion_t(quaternion_t &&) = default;
 		
 		// ================
 		// COMMON
 		// ================
 		
-		inline quaternion_t<T> conjugate() const {
+		constexpr quaternion_t<T> conjugate() const {
 			return {-data[0], -data[1], -data[2], data[3]};
 		}
 		
@@ -529,7 +529,7 @@ namespace asterid::brassica {
 			return {-data[0] / m, -data[1] / m, -data[2] / m, data[3] / m};
 		}
 		
-		inline T product() const {
+		constexpr T product() const {
 			return data[0] * data[0] + data[1] * data[1] + data[2] * data[2] + data[3] * data[3];
 		}
 		
@@ -724,8 +724,8 @@ namespace asterid::brassica {
 		// OPERATORS
 		// ================
 		
-		inline quaternion_t<T> & operator = (quaternion_t<T> const & other) = default;
-		inline quaternion_t<T> & operator = (quaternion_t<T> && other) = default;
+		constexpr quaternion_t<T> & operator = (quaternion_t<T> const & other) = default;
+		constexpr quaternion_t<T> & operator = (quaternion_t<T> && other) = default;
 		
 		inline quaternion_t<T> operator * (quaternion_t<T> const & other) const {
 			return quaternion_t<T>::multiply(*this, other);
@@ -736,8 +736,8 @@ namespace asterid::brassica {
 			return *this;
 		}
 		
-		inline T & operator [] (size_t i) { return data[i]; }
-		inline T const & operator [] (size_t i) const { return data[i]; }
+		constexpr T & operator [] (size_t i) { return data[i]; }
+		constexpr T const & operator [] (size_t i) const { return data[i]; }
 		
 		template <typename U> quaternion_t<T> & operator = (quaternion_t<U> const & other) {
 			data[0] = other.data[0];
@@ -899,10 +899,10 @@ namespace asterid::brassica {
 	template <typename T> struct mat4_t {
 		T data [4][4] {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
 		
-		mat4_t() = default;
-		mat4_t(T v1, T v2, T v3, T v4, T v5, T v6, T v7, T v8, T v9, T v10, T v11, T v12, T v13, T v14, T v15, T v16) : data {{v1, v2, v3, v4}, {v5, v6, v7, v8}, {v9, v10, v11, v12}, {v13, v14, v15, v16}} {}
+		constexpr mat4_t() = default;
+		constexpr mat4_t(T v1, T v2, T v3, T v4, T v5, T v6, T v7, T v8, T v9, T v10, T v11, T v12, T v13, T v14, T v15, T v16) : data {{v1, v2, v3, v4}, {v5, v6, v7, v8}, {v9, v10, v11, v12}, {v13, v14, v15, v16}} {}
 		
-		explicit mat4_t(quaternion_t<T> const & v) {
+		constexpr explicit mat4_t(quaternion_t<T> const & v) {
 			T sqx = v.data[0] * v.data[0];
 			T sqy = v.data[1] * v.data[1];
 			T sqz = v.data[2] * v.data[2];
@@ -924,9 +924,9 @@ namespace asterid::brassica {
 			data[1][2] = ((T)2) * (t1 - t2);
 		}
 		
-		mat4_t(mat4_t const &) = default;
-		mat4_t(mat4_t &&) = default;
-		template <typename U> mat4_t(mat4_t<U> const & other) {
+		constexpr mat4_t(mat4_t const &) = default;
+		constexpr mat4_t(mat4_t &&) = default;
+		template <typename U> constexpr mat4_t(mat4_t<U> const & other) {
 			data[0][0] = other.data[0][0];
 			data[0][1] = other.data[0][1];
 			data[0][2] = other.data[0][2];
@@ -964,7 +964,7 @@ namespace asterid::brassica {
 			w[2][2] = -ps * yc * rs + pc * rc;
 		}
 		
-		static mat4_t<T> ortho(T t, T b, T l, T r, T n, T f) {
+		static constexpr mat4_t<T> ortho(T t, T b, T l, T r, T n, T f) {
 			mat4_t<T> w {};
 			w[0][0] = static_cast<T>(2) / (r - l);
 			w[1][1] = static_cast<T>(2) / (t - b);
@@ -987,7 +987,7 @@ namespace asterid::brassica {
 			return w;
 		}
 		
-		static mat4_t<T> scale(vec3_t<T> const & v) {
+		static constexpr mat4_t<T> scale(vec3_t<T> const & v) {
 			mat4_t<T> w {};
 			w[0][0] = v.data[0];
 			w[1][1] = v.data[1];
@@ -995,7 +995,7 @@ namespace asterid::brassica {
 			return w;
 		}
 		
-		static mat4_t<T> translate(T x, T y, T z) {
+		static constexpr mat4_t<T> translate(T x, T y, T z) {
 			mat4_t<T> w {};
 			w[3][0] = x;
 			w[3][1] = y;
@@ -1003,7 +1003,7 @@ namespace asterid::brassica {
 			return w;
 		}
 		
-		static mat4_t<T> translate(vec3_t<T> const & v) {
+		static constexpr mat4_t<T> translate(vec3_t<T> const & v) {
 			mat4_t<T> w {};
 			w[3][0] = v.data[0];
 			w[3][1] = v.data[1];
@@ -1011,7 +1011,7 @@ namespace asterid::brassica {
 			return w;
 		}
 		
-		T determinant() const {
+		constexpr T determinant() const {
 			return
 				data[0][3] * data[1][2] * data[2][1] * data[3][0] - data[0][2] * data[1][3] * data[2][1] * data[3][0] - data[0][3] * data[1][1] * data[2][2] * data[3][0] + data[0][1] * data[1][3] * data[2][2] * data[3][0] +
 				data[0][2] * data[1][1] * data[2][3] * data[3][0] - data[0][1] * data[1][2] * data[2][3] * data[3][0] - data[0][3] * data[1][2] * data[2][0] * data[3][1] + data[0][2] * data[1][3] * data[2][0] * data[3][1] +
@@ -1021,7 +1021,7 @@ namespace asterid::brassica {
 				data[0][2] * data[1][0] * data[2][1] * data[3][3] - data[0][0] * data[1][2] * data[2][1] * data[3][3] - data[0][1] * data[1][0] * data[2][2] * data[3][3] + data[0][0] * data[1][1] * data[2][2] * data[3][3];
 		}
 		
-		mat4_t<T> inverted() const {
+		constexpr mat4_t<T> inverted() const {
 			mat4_t<T> mat {*this};
 			mat.data[0][0] = data[1][2] * data[2][3] * data[3][1] - data[1][3] * data[2][2] * data[3][1] + data[1][3] * data[2][1] * data[3][2] - data[1][1] * data[2][3] * data[3][2] - data[1][2] * data[2][1] * data[3][3] + data[1][1] * data[2][2] * data[3][3];
 			mat.data[0][1] = data[0][3] * data[2][2] * data[3][1] - data[0][2] * data[2][3] * data[3][1] - data[0][3] * data[2][1] * data[3][2] + data[0][1] * data[2][3] * data[3][2] + data[0][2] * data[2][1] * data[3][3] - data[0][1] * data[2][2] * data[3][3];
@@ -1043,7 +1043,7 @@ namespace asterid::brassica {
 			return mat;
 		}
 		
-		static mat4_t<T> multiply(mat4_t<T> const & A, mat4_t<T> const & B) {
+		static constexpr mat4_t<T> multiply(mat4_t<T> const & A, mat4_t<T> const & B) {
 			mat4_t<T> mat;
 			mat.data[0][0] = A.data[0][0] * B.data[0][0] + A.data[0][1] * B.data[1][0] + A.data[0][2] * B.data[2][0] + A.data[0][3] * B.data[3][0];
 			mat.data[0][1] = A.data[0][0] * B.data[0][1] + A.data[0][1] * B.data[1][1] + A.data[0][2] * B.data[2][1] + A.data[0][3] * B.data[3][1];
@@ -1064,19 +1064,19 @@ namespace asterid::brassica {
 			return mat;
 		}
 		
-		inline mat4_t<T> & operator = (mat4_t<T> const & other) = default;
-		inline mat4_t<T> & operator = (mat4_t<T> && other) = default;
+		constexpr mat4_t<T> & operator = (mat4_t<T> const & other) = default;
+		constexpr mat4_t<T> & operator = (mat4_t<T> && other) = default;
 		
-		inline mat4_t<T> operator * (mat4_t<T> const & other) const {
+		constexpr mat4_t<T> operator * (mat4_t<T> const & other) const {
 			return mat4_t<T>::multiply(*this, other);
 		}
 		
-		inline mat4_t<T> & operator *= (mat4_t<T> const & other) {
+		constexpr mat4_t<T> & operator *= (mat4_t<T> const & other) {
 			*this = mat4_t<T>::multiply(*this, other);
 			return *this;
 		}
 		
-		template <typename U> mat4_t<T> & operator = (mat4_t<U> const & other) {
+		template <typename U> constexpr mat4_t<T> & operator = (mat4_t<U> const & other) {
 			data[0][0] = other.data[0][0];
 			data[0][1] = other.data[0][1];
 			data[0][2] = other.data[0][2];
@@ -1096,10 +1096,10 @@ namespace asterid::brassica {
 			return *this;
 		}
 		
-		inline T * operator [] (size_t i) { return data[i]; }
-		inline T const * operator [] (size_t i) const { return data[i]; }
+		constexpr T * operator [] (size_t i) { return data[i]; }
+		constexpr T const * operator [] (size_t i) const { return data[i]; }
 		
-		inline operator T const * () const { return &data[0][0]; }
+		constexpr operator T const * () const { return &data[0][0]; }
 		
 #if BRASSICA_PRINT_FUNCTIONS == 1
 		std::string to_string() const {

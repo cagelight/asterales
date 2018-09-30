@@ -38,6 +38,9 @@ def build(bld):
 	bld_install_files = bld.path.ant_glob('src/asterid/*.hh')
 	bld.install_files('${PREFIX}/include/asterid', bld_install_files)
 	
+	bld_install_files = bld.path.ant_glob('src/asterid/third_party/*.hh')
+	bld.install_files('${PREFIX}/include/asterid/third_party', bld_install_files)
+	
 	bld_files = bld.path.ant_glob('src/*.cc')
 	asterid = bld (
 		features = "cxx cxxshlib",

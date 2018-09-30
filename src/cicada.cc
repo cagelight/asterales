@@ -40,12 +40,12 @@ void socket::close() {
 	FD = -1;
 }
 
-struct sendfile_helper::private_data {
+struct sendfile_helper::impl_t {
 	int fd;
 	struct stat finfo;
 	off_t offset;
 	size_t count;
-	private_data(std::string const & path, off_t offset, size_t count) : offset(offset), count(count) {
+	impl_t(std::string const & path, off_t offset, size_t count) : offset(offset), count(count) {
 		fd = ::open(path.c_str(), O_RDONLY);
 		if (fd < 0) throw exception::sendfile_notfound {};
 		fstat(fd, &finfo);
@@ -56,17 +56,17 @@ struct sendfile_helper::private_data {
 };
 
 sendfile_helper::sendfile_helper(std::string const & path, off_t offset, size_t count) {
-	data.reset(new private_data {path, offset, count});
+	impl.reset(new impl_t {path, offset, count});
 }
 
 bool sendfile_helper::is_done() {
-	return !data->count;
+	return !impl->count;
 }
 
 ssize_t sendfile_helper::work(connection & con) {
-	ssize_t amt = con.sendfile(data->fd, &data->offset, data->count);
+	ssize_t amt = con.sendfile(impl->fd, &impl->offset, impl->count);
 	if (amt < 0) return -1;
-	data->count -= amt;
+	impl->count -= amt;
 	return amt;
 }
 
@@ -184,14 +184,14 @@ void listener::accept() noexcept {
 	}
 }
 
-server::server(bool create_master_thread, unsigned int workers_num) : last_pulse { asterid::time::now<asterid::time::clock_type::monotonic>() } {
+reactor::reactor(bool create_master_thread, unsigned int workers_num) : last_pulse { asterid::time::now<asterid::time::clock_type::monotonic>() } {
 	epoll_obj = epoll_create(1);
 	epoll_mevt = new epoll_event [MAX_EPOLL_EVENTS];
-	for (unsigned int i = 0; i < workers_num; i++) workers.push_back( new std::thread { &server::worker_run, this } );
+	for (unsigned int i = 0; i < workers_num; i++) workers.push_back( new std::thread { &reactor::worker_run, this } );
 	if (create_master_thread) master_thread = new std::thread { [this](){ while (run_sem) master_loop(); } };
 }
 
-server::~server() {
+reactor::~reactor() {
 	run_sem.store(false);
 	if (master_thread) {
 		if (master_thread->joinable()) master_thread->join();
@@ -208,18 +208,18 @@ server::~server() {
 	if (EPOLLMEVT) delete [] EPOLLMEVT;
 }
 
-void server::epoll_register(int fd) {
+void reactor::epoll_register(int fd) {
 	epoll_event evt {};
 	evt.data.fd = fd;
 	evt.events = EPOLLIN;
 	epoll_ctl(epoll_obj, EPOLL_CTL_ADD, fd, &evt);
 }
 
-void server::master(std::function<bool()> pred) {
+void reactor::master(std::function<bool()> pred) {
 	while (pred()) master_loop();
 }
 
-void server::master_loop() {
+void reactor::master_loop() {
 	
 	int nfd = epoll_wait(epoll_obj, EPOLLMEVT, MAX_EPOLL_EVENTS, 1000);
 	if (nfd < 0) {
@@ -257,7 +257,7 @@ void server::master_loop() {
 	m2w_cv_mut.unlock();
 	m2w_cv.notify_all();
 }
-void server::worker_run() {
+void reactor::worker_run() {
 	
 	while (run_sem) {
 		{
@@ -279,6 +279,7 @@ void server::worker_run() {
 			m2w_queue.pop();
 			m2w_ulk.unlock();
 			
+			bool found = false;
 			instance_lock.read_access();
 			auto inst_find = instances.find(msg.descriptor);
 			if (inst_find == instances.end()) {
@@ -322,8 +323,7 @@ void server::worker_run() {
 	}
 }
 
-server::instance::instance(server const & parent, connection && con, std::shared_ptr<protocol_instantiator> const & pi) : parent(parent), con(std::forward<connection>(con)) {
-	proto = pi->instantiate();
+reactor::instance::instance(reactor const & parent, connection && con, std::unique_ptr<protocol> && pr) : parent(parent), con(std::forward<connection>(con)), proto(std::forward<std::unique_ptr<protocol> &&>(pr)) {
 	proto->set_mask = [this](signal::mask::type new_mask){
 		if (new_mask & signal::mask::terminate) {
 			this->con.close();
@@ -337,16 +337,85 @@ server::instance::instance(server const & parent, connection && con, std::shared
 	
 	epoll_evt = new epoll_event {};
 	EPOLLEVT->data.fd = this->con.FD;
-	EPOLLEVT->events = EPOLLIN | EPOLLOUT | EPOLLONESHOT;
+	EPOLLEVT->events = EPOLLONESHOT;
+	auto dmask = proto->default_mask();
+	if (dmask & signal::mask::wait_for_read) EPOLLEVT->events |= EPOLLIN;
+	if (dmask & signal::mask::wait_for_write) EPOLLEVT->events |= EPOLLOUT;
 	epoll_ctl(parent.epoll_obj, EPOLL_CTL_ADD, this->con.FD, EPOLLEVT);
 }
-server::instance::~instance() {
+reactor::instance::~instance() {
 	epoll_ctl(parent.epoll_obj, EPOLL_CTL_DEL, con.FD, EPOLLEVT);
 	if (EPOLLEVT) delete EPOLLEVT;
 }
 
-void server::instance::update_epoll(int flags) {
+void reactor::instance::update_epoll(int flags) {
 	flags |= EPOLLONESHOT;
 	EPOLLEVT->events = flags;
 	epoll_ctl(parent.epoll_obj, EPOLL_CTL_MOD, con.FD, EPOLLEVT);
+}
+
+struct connection_protocol : reactor::protocol {
+	connection_protocol() = default;
+	~connection_protocol() {
+		if (addr) freeaddrinfo(addr);
+	}
+	
+	virtual reactor::signal ready(connection & c, reactor::detail const &) override {
+		reactor::signal s;
+		
+		int serr;
+		socklen_t len;
+		int gerr = getsockopt(c.FD, SOL_SOCKET, SO_ERROR, &serr, &len);
+		
+		if (gerr == -1) throw exception::connection_establish {};
+		if (serr == EINPROGRESS) {
+			s.m = reactor::signal::mask::wait_for_read;
+			return s;
+		} else if (serr == 0) {
+			printf("SUCCESS\n");
+			s.m = reactor::signal::mask::terminate;
+			return s;
+		} else {
+			throw exception::connection_establish {};
+		}
+		
+		return s;
+	}
+	virtual reactor::signal::mask::type default_mask() override { return reactor::signal::mask::wait_for_write; }
+	addrinfo * addr = nullptr;
+};
+
+void reactor::connect(std::string const & host, std::string const & service) {
+	
+	std::unique_ptr<connection_protocol> cprot = std::make_unique<connection_protocol>();
+	
+	static constexpr addrinfo hints = {
+		.ai_flags = 0,
+		.ai_family = AF_UNSPEC,
+		.ai_socktype = SOCK_STREAM,
+		.ai_protocol = 0,
+		.ai_addrlen = 0,
+		.ai_addr = nullptr,
+		.ai_canonname = nullptr,
+		.ai_next = nullptr
+	};
+	
+	socket sock;
+	
+	int status = getaddrinfo(host.c_str(), service.c_str(), &hints, &cprot->addr);
+	if (status) throw exception::connection_resolve {};
+	
+	for (addrinfo * ai = cprot->addr; ai != nullptr; ai = ai->ai_next) {
+		if (ai->ai_family == AF_INET) sock.FD = ::socket(PF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+		else if (ai->ai_family == AF_INET6) sock.FD = ::socket(PF_INET6, SOCK_STREAM | SOCK_NONBLOCK, 0);
+		else continue;
+		
+		status = ::connect(sock.FD, ai->ai_addr, ai->ai_addrlen);
+		if (status == -1 && errno != EINPROGRESS) {
+			throw exception::connection_resolve {};
+		}
+		break;
+	}
+	
+	accept_connection(std::move(sock), std::move(cprot));
 }

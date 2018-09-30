@@ -24,6 +24,8 @@ namespace asterid::cicada {
 	
 	namespace exception {
 		struct base {};
+		struct connection_resolve : public base {};
+		struct connection_establish : public base {};
 		struct socket_acquire : public base {};
 		struct socket_bind : public base {};
 		struct listen_start : public base {};
@@ -36,6 +38,7 @@ namespace asterid::cicada {
 	
 	struct socket {
 		int FD;
+		
 		struct sockaddr_in6 addr;
 		
 		socket() = default;
@@ -49,8 +52,8 @@ namespace asterid::cicada {
 		bool is_done();
 		ssize_t work(connection &);
 	private:
-		struct private_data;
-		std::unique_ptr<private_data> data;
+		struct impl_t;
+		std::unique_ptr<impl_t> impl;
 	};
 	
 	struct connection : public socket {
@@ -84,7 +87,7 @@ namespace asterid::cicada {
 		accept_cb _accept_cb;
 	};
 	
-	struct server final {
+	struct reactor final {
 		
 		struct reason {
 			typedef uint_fast8_t type;
@@ -97,6 +100,8 @@ namespace asterid::cicada {
 			reason::type ready_reason;
 		};
 		
+		struct protocol;
+		
 		struct signal {
 		
 			struct mask {
@@ -104,10 +109,12 @@ namespace asterid::cicada {
 				static constexpr type terminate = 1 << 0;
 				static constexpr type wait_for_read = 1 << 1;
 				static constexpr type wait_for_write = 1 << 2;
+				static constexpr type switch_protocols = 1 << 3;
 			};
 			
 			mask::type m {0};
 			std::chrono::milliseconds wait_time {0};
+			std::shared_ptr<protocol> protocol_switch;
 		};
 		
 		typedef std::function<void(signal::mask::type)> setmask_cb;
@@ -116,22 +123,18 @@ namespace asterid::cicada {
 			setmask_cb set_mask;
 			virtual ~protocol() = default;
 			virtual signal ready(connection &, detail const &) = 0;
+			virtual signal::mask::type default_mask() { return signal::mask::wait_for_read | signal::mask::wait_for_write; }
 		};
 		
-		server() = delete;
-		server(bool create_master_thread = false, unsigned int workers = std::thread::hardware_concurrency());
-		server(uint16_t port, bool create_master_thread = true, unsigned int workers = std::thread::hardware_concurrency());
-		server(server const &) = delete;
-		server(server &&) = delete;
-		~server();
+		reactor(bool create_master_thread = false, unsigned int workers = std::thread::hardware_concurrency());
+		reactor(uint16_t port, bool create_master_thread = true, unsigned int workers = std::thread::hardware_concurrency());
+		reactor(reactor const &) = delete;
+		reactor(reactor &&) = delete;
+		~reactor();
 		
 		struct protocol_instantiator {
 			virtual ~protocol_instantiator() = default;
 			virtual std::unique_ptr<protocol> instantiate() = 0;
-		};
-		
-		struct parent_interface {
-			
 		};
 		
 		typedef std::shared_ptr<protocol_instantiator> protocol_instantiator_ptr;
@@ -146,19 +149,24 @@ namespace asterid::cicada {
 		
 		void master(std::function<bool()> pred); // when passing false for create_master_thread, an existing thread must act as the master by calling this function, a predicate is passed to be able to stop mastering at any point
 		
-		void accept_connection(connection && con, std::shared_ptr<protocol_instantiator> const & pi) {
+		inline void accept_connection(connection && con, std::shared_ptr<protocol_instantiator> const & pi) {
+			this->accept_connection(std::forward<connection &&>(con), pi->instantiate());
+		}
+		void accept_connection(connection && con, std::unique_ptr<protocol> && pi) {
 			int d = con.FD;
 			instance_lock.write_lock();
-			instances[d] = std::shared_ptr<instance> { new instance { *this, std::forward<connection>(con), pi } };
+			instances[d] = std::shared_ptr<instance> { new instance { *this, std::forward<connection>(con), std::forward<std::unique_ptr<protocol> &&>(pi) } };
 			instance_lock.write_unlock();
  		}
+ 		
+ 		void connect(std::string const & host, std::string const & service);
 		
 	private:
 		
 		struct instance {
-			instance(server const & parent, connection && con, std::shared_ptr<protocol_instantiator> const & pi);
+			instance(reactor const & parent, connection && con, std::unique_ptr<protocol> && pr);
 			~instance();
-			server const & parent;
+			reactor const & parent;
 			connection con;
 			std::unique_ptr<protocol> proto;
 			asterid::spinlock use_lock;

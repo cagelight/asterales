@@ -1,4 +1,4 @@
-#include "asterid/strops.hh"
+#include "asterid/strop.hh"
 
 #include <cstdarg>
 
