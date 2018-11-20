@@ -92,6 +92,8 @@ namespace asterid::aeon {
 
 		object & operator [] (size_t);
 		object const & operator [] (size_t) const;
+		template <typename T, typename = std::enable_if<std::is_integral<T>::value>> inline object & operator [] (T i) { return operator [] (static_cast<size_t>(i)); }
+		template <typename T, typename = std::enable_if<std::is_integral<T>::value>> inline object const & operator [] (T i) const { return operator [] (static_cast<size_t>(i)); }
 		object & operator [] (str_t const &);
 		object const & operator [] (str_t const &) const;
 		inline object & operator [] (char const * str) { return operator [] (std::string{str}); }

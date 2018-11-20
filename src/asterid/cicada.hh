@@ -114,7 +114,7 @@ namespace asterid::cicada {
 			
 			mask::type m {0};
 			std::chrono::milliseconds wait_time {0};
-			std::shared_ptr<protocol> protocol_switch;
+			std::unique_ptr<protocol> protocol_switch;
 		};
 		
 		typedef std::function<void(signal::mask::type)> setmask_cb;
@@ -159,7 +159,10 @@ namespace asterid::cicada {
 			instance_lock.write_unlock();
  		}
  		
- 		void connect(std::string const & host, std::string const & service);
+ 		template <typename P> inline void connect(std::string const & host, std::string const & service) {
+			connect(host, service, std::make_unique<automatic_protocol_instantiator<P>>());
+		}
+ 		void connect(std::string const & host, std::string const & service, std::shared_ptr<protocol_instantiator> const & pi);
 		
 	private:
 		

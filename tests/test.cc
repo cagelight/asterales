@@ -27,6 +27,8 @@ int main(int argc, char * * argv) {
 		tests::brassica_tests();
 	} else if (arg == "strop") {
 		tests::strop_tests();
+	} else if (arg == "signal") {
+		tests::signal_tests();
 	} else {
 		tlog << "unknown argument: \"" << arg << "\"";
 		tlog << "must be one of:\n> brassica\n> buffer_assembly\n> codon\n> strop\n> threadpool";

@@ -13,6 +13,7 @@ namespace tests {
 	void codon_tests();
 	void brassica_tests();
 	void strop_tests();
+	void signal_tests();
 }
 
 namespace util {

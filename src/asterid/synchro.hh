@@ -143,7 +143,7 @@ namespace asterid {
 		}
 		
 		inline void read_done() {
-			readers.fetch_add(-1);
+			readers.fetch_sub(1);
 		}
 		
 		inline void write_lock() {
@@ -172,7 +172,7 @@ namespace asterid {
 			write_sem.clear();
 		}
 		
-		inline  void write_to_read() {
+		inline void write_to_read() {
 			readers.fetch_add(1);
 			write_sem.clear();
 		}
@@ -182,5 +182,4 @@ namespace asterid {
 		std::atomic_flag accessor {false};
 		std::atomic_flag write_sem {false};
 	};
-
 }

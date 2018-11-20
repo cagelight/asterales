@@ -366,6 +366,8 @@ namespace asterid::brassica {
 		constexpr T & operator [] (size_t i) { return data[i]; }
 		constexpr T const & operator [] (size_t i) const { return data[i]; }
 		
+		constexpr operator T const * () const { return &data[0]; }
+		
 		constexpr vec4_t<T> operator - () const { return {-x(), -y(), -z(), -w()}; }
 		
 #if BRASSICA_PRINT_FUNCTIONS == 1
@@ -801,6 +803,43 @@ namespace asterid::brassica {
 			data[2][2] = other.data[2][2];
 		}
 		
+		static constexpr mat3_t<T> scale(T x, T y) {
+			mat3_t<T> w {};
+			w[0][0] = x;
+			w[1][1] = y;
+			return w;
+		}
+		
+		static constexpr mat3_t<T> scale(vec2_t<T> const & v) {
+			mat3_t<T> w {};
+			w[0][0] = v.data[0];
+			w[1][1] = v.data[1];
+			return w;
+		}
+		
+		static constexpr mat3_t<T> translate(T x, T y) {
+			mat3_t<T> w {};
+			w[2][0] = x;
+			w[2][1] = y;
+			return w;
+		}
+		
+		static constexpr mat3_t<T> translate(vec2_t<T> const & v) {
+			mat3_t<T> w {};
+			w[2][0] = v.data[0];
+			w[2][1] = v.data[1];
+			return w;
+		}
+		
+		static constexpr mat3_t<T> rotate(T v) {
+			mat3_t<T> m;
+			m[0][0] = cos(v);
+			m[0][1] = -sin(v);
+			m[1][0] = sin(v);
+			m[1][1] = cos(v);
+			return m;
+		}
+		
 		static mat3_t<T> euler (vec3_t<T> const & v) {
 			mat3_t<T> w {};
 			T rs = sin(-v.data[0]);
@@ -947,21 +986,22 @@ namespace asterid::brassica {
 		
 		static mat4_t<T> euler (vec3_t<T> const & v) {
 			mat4_t<T> w {};
-			T rs = sin(-v.data[0]);
-			T ps = sin(v.data[1]);
-			T ys = sin(-v.data[2]);
-			T rc = cos(-v.data[0]);
-			T pc = cos(v.data[1]);
-			T yc = cos(-v.data[2]);
-			w[0][0] = yc * pc;
-			w[0][1] = ps * rs - pc * ys * rc;
-			w[0][2] = pc * ys * rs + ps * rc;
-			w[1][0] = ys;
-			w[1][1] = yc * rc;
-			w[1][2] = -yc * rs;
-			w[2][0] = -ps * yc;
-			w[2][1] = ps * ys * rc + pc * rs;
-			w[2][2] = -ps * yc * rs + pc * rc;
+			T sa = sin(v.data[0]);
+			T sb = sin(v.data[1]);
+			T sh = sin(v.data[2]);
+			T ca = cos(v.data[0]);
+			T cb = cos(v.data[1]);
+			T ch = cos(v.data[2]);
+			w[0][0] = ch * ca;
+			w[0][1] = -ch * sa * cb + sh * sb;
+			w[0][2] = ch * sa * sb + sh * cb;
+			w[1][0] = sa;
+			w[1][1] = ca * cb;
+			w[1][2] = -ca * sb;
+			w[2][0] = -sh * ca;
+			w[2][1] = sh * sa * cb + ch * sb;
+			w[2][2] = -sh * sa * sb + ch * cb;
+			return w;
 		}
 		
 		static constexpr mat4_t<T> ortho(T t, T b, T l, T r, T n, T f) {
@@ -984,6 +1024,14 @@ namespace asterid::brassica {
 			w[2][3] = static_cast<T>(1);
 			w[3][2] = - (static_cast<T>(2) * far * near) / (far - near);
 			w[3][3] = 0;
+			return w;
+		}
+		
+		static constexpr mat4_t<T> scale(T x, T y, T z) {
+			mat4_t<T> w {};
+			w[0][0] = x;
+			w[1][1] = y;
+			w[2][2] = z;
 			return w;
 		}
 		

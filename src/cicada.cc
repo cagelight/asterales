@@ -279,7 +279,6 @@ void reactor::worker_run() {
 			m2w_queue.pop();
 			m2w_ulk.unlock();
 			
-			bool found = false;
 			instance_lock.read_access();
 			auto inst_find = instances.find(msg.descriptor);
 			if (inst_find == instances.end()) {
@@ -311,6 +310,11 @@ void reactor::worker_run() {
 				instance_lock.write_unlock();
 				inst->use_lock.unlock();
 				continue;
+			}
+			
+			if (sig.m & signal::mask::switch_protocols) {
+				inst->proto = std::move(sig.protocol_switch);
+				sig.m = inst->proto->default_mask();
 			}
 			
 			int flags = 0;
@@ -372,8 +376,8 @@ struct connection_protocol : reactor::protocol {
 			s.m = reactor::signal::mask::wait_for_read;
 			return s;
 		} else if (serr == 0) {
-			printf("SUCCESS\n");
-			s.m = reactor::signal::mask::terminate;
+			s.m = reactor::signal::mask::switch_protocols;
+			s.protocol_switch = pi->instantiate();
 			return s;
 		} else {
 			throw exception::connection_establish {};
@@ -383,11 +387,13 @@ struct connection_protocol : reactor::protocol {
 	}
 	virtual reactor::signal::mask::type default_mask() override { return reactor::signal::mask::wait_for_write; }
 	addrinfo * addr = nullptr;
+	std::shared_ptr<reactor::protocol_instantiator> pi;
 };
 
-void reactor::connect(std::string const & host, std::string const & service) {
+void reactor::connect(std::string const & host, std::string const & service, std::shared_ptr<protocol_instantiator> const & pi) {
 	
 	std::unique_ptr<connection_protocol> cprot = std::make_unique<connection_protocol>();
+	cprot->pi = pi;
 	
 	static constexpr addrinfo hints = {
 		.ai_flags = 0,
