@@ -1,6 +1,8 @@
+#pragma once
+
 #include <cstdint>
 
-#include <asterid/brassica.hh>
+#include "brassica.hh"
 
 namespace asterid {
 	
