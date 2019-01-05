@@ -1,8 +1,8 @@
-#include "asterid/buffer_assembly.hh"
+#include "asterales/buffer_assembly.hh"
 
 #include <cstdlib>
 
-using namespace asterid;
+using namespace asterales;
 
 static constexpr size_t default_size = 256;
 #define datav reinterpret_cast<void *>(data_)

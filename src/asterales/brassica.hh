@@ -25,7 +25,7 @@
 #include <functional>
 #endif
 
-namespace asterid::brassica {
+namespace asterales::brassica {
 	
 	typedef int_fast64_t work_int_t;
 	typedef uint_fast64_t work_uint_t;
@@ -1315,31 +1315,31 @@ namespace asterid::brassica {
 
 #if BRASSICA_PRINT_FUNCTIONS == 1
 namespace std {
-	template <typename T> std::string to_string(asterid::brassica::vec2_t<T> const & v) {
+	template <typename T> std::string to_string(asterales::brassica::vec2_t<T> const & v) {
 		return v.to_string();
 	}
-	template <typename T> std::string to_string(asterid::brassica::vec3_t<T> const & v) {
+	template <typename T> std::string to_string(asterales::brassica::vec3_t<T> const & v) {
 		return v.to_string();
 	}
-	template <typename T> std::string to_string(asterid::brassica::vec4_t<T> const & v) {
+	template <typename T> std::string to_string(asterales::brassica::vec4_t<T> const & v) {
 		return v.to_string();
 	}
-	template <typename T> std::string to_string(asterid::brassica::rect_t<T> const & v) {
+	template <typename T> std::string to_string(asterales::brassica::rect_t<T> const & v) {
 		return v.to_string();
 	}
-	template <typename T> std::string to_string(asterid::brassica::quaternion_t<T> const & v) {
+	template <typename T> std::string to_string(asterales::brassica::quaternion_t<T> const & v) {
 		return v.to_string();
 	}
-	template <typename T> std::string to_string(asterid::brassica::mat3_t<T> const & v) {
+	template <typename T> std::string to_string(asterales::brassica::mat3_t<T> const & v) {
 		return v.to_string();
 	}
-	template <typename T> std::string to_string(asterid::brassica::mat4_t<T> const & v) {
+	template <typename T> std::string to_string(asterales::brassica::mat4_t<T> const & v) {
 		return v.to_string();
 	}
-	template <typename T> std::string to_string(asterid::brassica::la::ray_t<T> const & v) {
+	template <typename T> std::string to_string(asterales::brassica::la::ray_t<T> const & v) {
 		return v.to_string();
 	}
-	template <typename T> std::string to_string(asterid::brassica::la::plane_t<T> const & v) {
+	template <typename T> std::string to_string(asterales::brassica::la::plane_t<T> const & v) {
 		return v.to_string();
 	}
 }
@@ -1347,41 +1347,41 @@ namespace std {
 
 #if BRASSICA_HASH_FUNCTIONS == 1
 namespace std {
-	template <typename T> struct hash<asterid::brassica::vec2_t<T>> {
-		size_t operator () (asterid::brassica::vec2_t<T> const & v) const {
+	template <typename T> struct hash<asterales::brassica::vec2_t<T>> {
+		size_t operator () (asterales::brassica::vec2_t<T> const & v) const {
 			return std::hash(v[0]) + std::hash(v[1]);
 		}
 	};
-	template <typename T> struct hash<asterid::brassica::vec3_t<T>> {
-		size_t operator () (asterid::brassica::vec3_t<T> const & v) const {
+	template <typename T> struct hash<asterales::brassica::vec3_t<T>> {
+		size_t operator () (asterales::brassica::vec3_t<T> const & v) const {
 			return std::hash(v[0]) + std::hash(v[1]) + std::hash(v[2]);
 		}
 	};
-	template <typename T> struct hash<asterid::brassica::vec4_t<T>> {
-		size_t operator () (asterid::brassica::vec4_t<T> const & v) const {
+	template <typename T> struct hash<asterales::brassica::vec4_t<T>> {
+		size_t operator () (asterales::brassica::vec4_t<T> const & v) const {
 			return std::hash(v[0]) + std::hash(v[1]) + std::hash(v[2]) + std::hash(v[3]);
 		}
 	};
-	template <typename T> struct hash<asterid::brassica::rect_t<T>> {
-		size_t operator () (asterid::brassica::rect_t<T> const & v) const {
+	template <typename T> struct hash<asterales::brassica::rect_t<T>> {
+		size_t operator () (asterales::brassica::rect_t<T> const & v) const {
 			return std::hash(v.origin) + std::hash(v.extents);
 		}
 	};
-	template <typename T> struct hash<asterid::brassica::quaternion_t<T>> {
-		size_t operator () (asterid::brassica::quaternion_t<T> const & v) const {
+	template <typename T> struct hash<asterales::brassica::quaternion_t<T>> {
+		size_t operator () (asterales::brassica::quaternion_t<T> const & v) const {
 			return std::hash(v[0]) + std::hash(v[1]) + std::hash(v[2]) + std::hash(v[3]);
 		}
 	};
-	template <typename T> struct hash<asterid::brassica::mat3_t<T>> {
-		size_t operator () (asterid::brassica::mat3_t<T> const & v) const {
+	template <typename T> struct hash<asterales::brassica::mat3_t<T>> {
+		size_t operator () (asterales::brassica::mat3_t<T> const & v) const {
 			size_t h = 0;
 			for (size_t i = 0; i < 3; i++) for (size_t j = 0; j < 3; j++)
 				h += std::hash(v[i][j]);
 			return h;
 		}
 	};
-	template <typename T> struct hash<asterid::brassica::mat4_t<T>> {
-		size_t operator () (asterid::brassica::mat4_t<T> const & v) const {
+	template <typename T> struct hash<asterales::brassica::mat4_t<T>> {
+		size_t operator () (asterales::brassica::mat4_t<T> const & v) const {
 			size_t h = 0;
 			for (size_t i = 0; i < 4; i++) for (size_t j = 0; j < 4; j++)
 				h += std::hash(v[i][j]);

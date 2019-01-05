@@ -4,13 +4,13 @@
 
 #include "brassica.hh"
 
-namespace asterid {
+namespace asterales {
 	
 	struct simplex final {
 		
-		typedef asterid::brassica::vec2_t<double> vec2_t;
-		typedef asterid::brassica::vec3_t<double> vec3_t;
-		typedef asterid::brassica::vec4_t<double> vec4_t;
+		typedef asterales::brassica::vec2_t<double> vec2_t;
+		typedef asterales::brassica::vec3_t<double> vec3_t;
+		typedef asterales::brassica::vec4_t<double> vec4_t;
 		
 		constexpr simplex() : perm {}, perm12 {} {
 			for (uint_fast16_t i = 0; i < 256; i++) perm[i] = i;

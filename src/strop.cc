@@ -1,11 +1,11 @@
-#include "asterid/strop.hh"
+#include "asterales/strop.hh"
 
 #include <cstdarg>
 
 #define VAS_HISTORY_SIZE 8
 
 static constexpr size_t strf_startlen = 256;
-std::string asterid::strf(char const * fmt, ...) noexcept {
+std::string asterales::strf(char const * fmt, ...) noexcept {
 	
 	va_list va;
 	va_start(va, fmt);
@@ -28,7 +28,7 @@ std::string asterid::strf(char const * fmt, ...) noexcept {
 
 static thread_local char * vas_buffers [VAS_HISTORY_SIZE] {0};
 static thread_local int vas_cur = 0;
-char const * asterid::vas(char const * fmt, ...) noexcept {
+char const * asterales::vas(char const * fmt, ...) noexcept {
 
 	va_list va;
 	va_start(va, fmt);

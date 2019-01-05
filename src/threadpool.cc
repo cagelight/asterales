@@ -1,12 +1,12 @@
-#include "asterid/threadpool.hh"
+#include "asterales/threadpool.hh"
 
-asterid::thread_pool::thread_pool(size_t pool_size) {
+asterales::thread_pool::thread_pool(size_t pool_size) {
 	for (size_t i = 0; i < pool_size; i++) {
 		threads.emplace_back(&thread_pool::thread_run, this);
 	}
 }
 
-asterid::thread_pool::~thread_pool() {
+asterales::thread_pool::~thread_pool() {
 	run_sem.store(false);
 	queue_cv.notify_all();
 	for (std::thread & th : threads) {
@@ -14,13 +14,13 @@ asterid::thread_pool::~thread_pool() {
 	}
 }
 
-void asterid::thread_pool::enqueue(std::unique_ptr<task_base> && task) {
+void asterales::thread_pool::enqueue(std::unique_ptr<task_base> && task) {
 	std::unique_lock lk {queue_m};
 	task_queue.push(std::forward<std::unique_ptr<task_base> &&>(task));
 	queue_cv.notify_one();
 }
 
-void asterid::thread_pool::thread_run() {
+void asterales::thread_pool::thread_run() {
 	while (run_sem) {
 		{
 			std::unique_lock lk {cv_m};

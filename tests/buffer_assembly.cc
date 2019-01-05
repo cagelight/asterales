@@ -1,8 +1,8 @@
 #include "tests.hh"
 
 #include <random>
-#include "asterid/buffer_assembly.hh"
-#include "asterid/time.hh"
+#include "asterales/buffer_assembly.hh"
+#include "asterales/time.hh"
 
 static std::mt19937_64 gen {std::random_device{}()};
 static std::uniform_int_distribution<size_t> dist (0, 8192);
@@ -14,11 +14,11 @@ static std::uniform_int_distribution<size_t> dist (0, 8192);
 static constexpr size_t test_count = 5000000;
 #define TESTLOOP for (size_t i = 0; i < test_count; i++)
 
-static asterid::time::keeper<asterid::time::clock_type::thread> tk;
+static asterales::time::keeper<asterales::time::clock_type::thread> tk;
 
 void tests::buffer_assembly_tests() {
 	tlog << "STARTING BUFFER ASSEMBLY TESTS\n";
-	asterid::buffer_assembly buf, buf2;
+	asterales::buffer_assembly buf, buf2;
 	TEST(buf.size() == 0);
 	buf.resize(0);
 	TEST(buf.capacity() != 0);

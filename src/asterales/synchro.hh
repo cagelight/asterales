@@ -6,7 +6,7 @@
 #include <mutex>
 #include <thread>
 
-namespace asterid {
+namespace asterales {
 	
 	struct fifo_mutex final {
 		

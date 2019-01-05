@@ -1,4 +1,4 @@
-#include "asterid/cicada.hh"
+#include "asterales/cicada.hh"
 
 #include <algorithm>
 
@@ -13,7 +13,7 @@
 #include <sys/stat.h>
 #include <sys/epoll.h>
 
-using namespace asterid::cicada;
+using namespace asterales::cicada;
 
 static constexpr int enable = 1;
 static constexpr int disable = 0;
@@ -184,7 +184,7 @@ void listener::accept() noexcept {
 	}
 }
 
-reactor::reactor(bool create_master_thread, unsigned int workers_num) : last_pulse { asterid::time::now<asterid::time::clock_type::monotonic>() } {
+reactor::reactor(bool create_master_thread, unsigned int workers_num) : last_pulse { asterales::time::now<asterales::time::clock_type::monotonic>() } {
 	epoll_obj = epoll_create(1);
 	epoll_mevt = new epoll_event [MAX_EPOLL_EVENTS];
 	for (unsigned int i = 0; i < workers_num; i++) workers.push_back( new std::thread { &reactor::worker_run, this } );
@@ -243,8 +243,8 @@ void reactor::master_loop() {
 	}
 	m2w_lock.unlock();
 	
-	auto now = asterid::time::now<asterid::time::clock_type::monotonic>();
-	if (now - last_pulse > asterid::time::span {5}) {
+	auto now = asterales::time::now<asterales::time::clock_type::monotonic>();
+	if (now - last_pulse > asterales::time::span {5}) {
 		last_pulse = now;
 		for (auto & i : instances) {
 			m2w_lock.lock();
@@ -273,7 +273,7 @@ void reactor::worker_run() {
 		
 		while (true) {
 			
-			std::unique_lock<asterid::spinlock> m2w_ulk {m2w_lock};
+			std::unique_lock<asterales::spinlock> m2w_ulk {m2w_lock};
 			if (m2w_queue.empty()) break;
 			auto msg = m2w_queue.front();
 			m2w_queue.pop();

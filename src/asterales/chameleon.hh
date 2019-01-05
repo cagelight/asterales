@@ -5,7 +5,7 @@
 #include <vector>
 #include <cstdint>
 
-namespace asterid::chameleon {
+namespace asterales::chameleon {
 	
 	typedef double element_t;
 	typedef uint_fast32_t dim_t;

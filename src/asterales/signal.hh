@@ -2,23 +2,23 @@
 
 #include <functional>
 
-#include "asterid/synchro.hh"
+#include "asterales/synchro.hh"
 
-namespace asterid {
+namespace asterales {
 	struct connection;
 	struct observer;
 	template <typename ... T> struct signal;
 }
 
-struct asterid::connection {
+struct asterales::connection {
 	virtual ~connection() = default;
 };
 
-struct asterid::observer {
+struct asterales::observer {
 	std::vector<std::unique_ptr<connection>> connections;
 };
 
-template <typename ... T> struct asterid::signal {
+template <typename ... T> struct asterales::signal {
 	using func_t = std::function<void(T ...)>;
 	using id_t = uint16_t;
 	using cb_t = std::pair<id_t, func_t>;
@@ -26,10 +26,10 @@ template <typename ... T> struct asterid::signal {
 	struct shared_data {
 		shared_data(signal * parent) : parent(parent) {}
 		signal * parent;
-		asterid::rw_spinlock accessor;
+		asterales::rw_spinlock accessor;
 	};
 	
-	struct connection : public asterid::connection {
+	struct connection : public asterales::connection {
 		id_t id;
 		std::shared_ptr<shared_data> data;
 		
@@ -78,6 +78,6 @@ private:
 	
 	std::vector<cb_t> cbs;
 	id_t id_incrementor = 0;
-	asterid::spinlock mutex;
+	asterales::spinlock mutex;
 	std::shared_ptr<shared_data> data = std::make_shared<shared_data>(this);
 };

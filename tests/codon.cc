@@ -1,6 +1,6 @@
 #include "tests.hh"
 
-#include "asterid/codon.hh"
+#include "asterales/codon.hh"
 
 #include <random>
 
@@ -17,7 +17,7 @@ struct c1tr {
 
 void tests::codon_tests() {
 	/*
-	asterid::codon::chain_1bit<c1te> c1t {20};
+	asterales::codon::chain_1bit<c1te> c1t {20};
 	
 	TEST(c1t.size() == 20);
 	TEST(c1t.data().size() == 3);

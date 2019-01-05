@@ -1,11 +1,11 @@
-#include "asterid/signal.hh"
+#include "asterales/signal.hh"
 #include "tests.hh"
 
-using testsig1 = asterid::signal<int, float>;
+using testsig1 = asterales::signal<int, float>;
 
 void tests::signal_tests() {
 	testsig1 sig1;
-	asterid::observer ob;
+	asterales::observer ob;
 	sig1.connect(ob, [](int i, float f){
 		printf("Int: %i, Float: %f\n", i, f);
 	});

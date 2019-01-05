@@ -8,7 +8,7 @@
 
 #include "buffer_assembly.hh"
 
-namespace asterid::aeon {
+namespace asterales::aeon {
 	
 	struct object;
 	
@@ -143,10 +143,10 @@ namespace asterid::aeon {
 	extern object const & null;
 };
 
-std::ostream & operator << (std::ostream & out, asterid::aeon::object const & t);
+std::ostream & operator << (std::ostream & out, asterales::aeon::object const & t);
 
 namespace std {
-	inline string to_string(asterid::aeon::object const & aeon) {
+	inline string to_string(asterales::aeon::object const & aeon) {
 		return aeon.serialize_text();
 	}
 }

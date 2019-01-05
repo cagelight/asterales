@@ -1,8 +1,8 @@
-#include "asterid/noise.hh"
+#include "asterales/noise.hh"
 
 #include <random>
 
-typedef asterid::brassica::vec3_t<double> grad_t;
+typedef asterales::brassica::vec3_t<double> grad_t;
 
 static grad_t constexpr grad3[] = {
 	{1,1,0}, {-1,1,0}, {1,-1,0}, {-1,-1,0},
@@ -17,7 +17,7 @@ static double constexpr G3 = 1.0 / 6.0;
 static double const F4 = (sqrt(5.0) - 1.0) / 4.0;
 static double const G4 = (5.0 - sqrt(5.0)) / 20.0;
 
-double asterid::simplex::generate(double x, double y) const {
+double asterales::simplex::generate(double x, double y) const {
 
 	double n0 = 0.0, n1 = 0.0, n2 = 0.0;
 	double s = (x + y) * F2;
@@ -72,7 +72,7 @@ double asterid::simplex::generate(double x, double y) const {
 	return 70.0 * (n0 + n1 + n2);
 }
 
-double asterid::simplex::generate(double x, double y, double z) const {
+double asterales::simplex::generate(double x, double y, double z) const {
 	
 	double n0, n1, n2, n3;
 	double s = (x + y + z) * F3;

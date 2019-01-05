@@ -9,7 +9,7 @@
 #define MICRO 1000000
 #define NANO 1000000000
 
-namespace asterid::time {
+namespace asterales::time {
 	
 	struct unit : public timespec {
 		

@@ -1,11 +1,11 @@
-#include "asterid/brassica.hh"
+#include "asterales/brassica.hh"
 #include "tests.hh"
 
 #include <random>
 
 typedef double test_t;
 
-namespace b = asterid::brassica;
+namespace b = asterales::brassica;
 typedef b::vec3_t<test_t> vec3_t;
 typedef b::vec4_t<test_t> vec4_t;
 typedef b::rect_t<test_t> rect_t;

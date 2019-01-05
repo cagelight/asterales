@@ -5,7 +5,7 @@
 #include <vector>
 #include <random>
 
-namespace asterid::codon {
+namespace asterales::codon {
 	
 	namespace mutator {
 		

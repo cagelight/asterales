@@ -3,7 +3,7 @@
 #include <string>
 #include <string_view>
 
-namespace asterid {
+namespace asterales {
 	
 	struct insensitive_char_traits : public std::char_traits<char> {
 		
@@ -41,8 +41,8 @@ namespace asterid {
 
 namespace std {
 	
-	template <> struct hash<asterid::istring> {
-		size_t operator() (asterid::istring const & str) const {
+	template <> struct hash<asterales::istring> {
+		size_t operator() (asterales::istring const & str) const {
 			size_t h = 14695981039346656037UL;
 			for (char c : str) {
 				h ^= std::toupper(c);

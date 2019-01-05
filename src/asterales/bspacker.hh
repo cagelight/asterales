@@ -2,7 +2,7 @@
 
 #include <ctgmath>
 
-namespace asterid {
+namespace asterales {
 
 	template <typename Q = unsigned int> struct bspacker {
 		

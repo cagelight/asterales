@@ -1,4 +1,4 @@
-#include "asterid/strop.hh"
+#include "asterales/strop.hh"
 #include "tests.hh"
 
 #include <random>

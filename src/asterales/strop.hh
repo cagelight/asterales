@@ -9,7 +9,7 @@
 #include <sstream>
 #include <iomanip>
 
-namespace asterid {
+namespace asterales {
 	
 	static std::string const empty_str {};
 	
@@ -28,8 +28,8 @@ namespace asterid {
 		template <typename T> inline streamlogger & operator << ( T const & other ) { str += std::to_string(other); return *this; }
 	};
 	
-	template <class T> struct _asterid_non_deducible { using type = T; };
-	template <class T> using _asterid_non_deducible_t = typename _asterid_non_deducible<T>::type;
+	template <class T> struct _asterales_non_deducible { using type = T; };
+	template <class T> using _asterales_non_deducible_t = typename _asterales_non_deducible<T>::type;
 	
 	struct strop_bounds_exception {};
 		
@@ -120,7 +120,7 @@ namespace asterid {
 		return r;
 	}
 	
-	template <typename T, typename V = std::vector<T>, typename Ti = typename T::const_iterator> V separate (T const & a, _asterid_non_deducible_t<T> const & b, size_t num_sep = SIZE_MAX) {
+	template <typename T, typename V = std::vector<T>, typename Ti = typename T::const_iterator> V separate (T const & a, _asterales_non_deducible_t<T> const & b, size_t num_sep = SIZE_MAX) {
 		return separate<T, V, Ti> (a.begin(), a.end(), b.begin(), b.end(), num_sep);
 	}
 	
@@ -284,7 +284,7 @@ namespace asterid {
 		return false;
 	}
 	
-	template <typename T> bool starts_with(T const & string_to_search, _asterid_non_deducible_t<T> const & string_to_search_for) {
+	template <typename T> bool starts_with(T const & string_to_search, _asterales_non_deducible_t<T> const & string_to_search_for) {
 		if (string_to_search.size() < string_to_search_for.size()) return false;
 		typename T::const_iterator a_i = string_to_search.begin(), b_i = string_to_search_for.begin();
 		for (size_t i = 0; i < string_to_search_for.size(); i++) {
@@ -293,7 +293,7 @@ namespace asterid {
 		return true;
 	}
 	
-	template <typename T> bool ends_with(T const & string_to_search, _asterid_non_deducible_t<T> const & string_to_search_for) {
+	template <typename T> bool ends_with(T const & string_to_search, _asterales_non_deducible_t<T> const & string_to_search_for) {
 		if (string_to_search.size() < string_to_search_for.size()) return false;
 		typename T::const_iterator a_i = string_to_search.end() - string_to_search_for.size(), b_i = string_to_search_for.begin();
 		for (size_t i = 0; i < string_to_search_for.size(); i++) {
@@ -319,5 +319,5 @@ namespace asterid {
 	
 }
 
-#define _as_here asterid::vas("%s, in %s, line %u", __PRETTY_FUNCTION__, __FILE__,  __LINE__)
-#define _as_herestr asterid::strf("%s, in %s, line %u", __PRETTY_FUNCTION__, __FILE__,  __LINE__)
+#define _as_here asterales::vas("%s, in %s, line %u", __PRETTY_FUNCTION__, __FILE__,  __LINE__)
+#define _as_herestr asterales::strf("%s, in %s, line %u", __PRETTY_FUNCTION__, __FILE__,  __LINE__)

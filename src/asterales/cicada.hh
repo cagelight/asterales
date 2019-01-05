@@ -17,7 +17,7 @@
 
 #include <netinet/in.h>
 
-namespace asterid::cicada {
+namespace asterales::cicada {
 	
 	struct socket;
 	struct connection;
@@ -172,7 +172,7 @@ namespace asterid::cicada {
 			reactor const & parent;
 			connection con;
 			std::unique_ptr<protocol> proto;
-			asterid::spinlock use_lock;
+			asterales::spinlock use_lock;
 			void * epoll_evt;
 			void update_epoll(int flags);
 		};
@@ -182,10 +182,10 @@ namespace asterid::cicada {
 		};
 		
 		std::unordered_map<uint16_t, std::unique_ptr<listener>> services;
-		asterid::spinlock service_lock;
+		asterales::spinlock service_lock;
 		
 		std::unordered_map<int, std::shared_ptr<instance>> instances;
-		asterid::rw_spinlock instance_lock;
+		asterales::rw_spinlock instance_lock;
 		
 		std::atomic_bool run_sem {true};
 		std::thread * master_thread = nullptr;
@@ -198,11 +198,11 @@ namespace asterid::cicada {
 		};
 		
 		std::queue<m2w_msg> m2w_queue;
-		asterid::spinlock m2w_lock;
+		asterales::spinlock m2w_lock;
 		std::condition_variable m2w_cv;
 		std::mutex m2w_cv_mut;
 		
-		asterid::time::point last_pulse;
+		asterales::time::point last_pulse;
 		
 		int epoll_obj;
 		void * epoll_mevt;

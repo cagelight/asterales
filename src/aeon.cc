@@ -1,10 +1,10 @@
-#include "asterid/aeon.hh"
+#include "asterales/aeon.hh"
 
 #include <iomanip>
 #include <sstream>
 #include <limits>
 
-using namespace asterid;
+using namespace asterales;
 
 static aeon::object null_ {};
 aeon::object const & aeon::null {null_};
@@ -367,7 +367,7 @@ std::string aeon::object::serialize_text() const {
 	}
 }
 
-std::ostream & operator << (std::ostream & out, asterid::aeon::object const & t) {
+std::ostream & operator << (std::ostream & out, asterales::aeon::object const & t) {
 	out << t.serialize_text();
 	return out;
 }

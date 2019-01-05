@@ -1,16 +1,16 @@
 #include "tests.hh"
 
-#include "asterid/threadpool.hh"
+#include "asterales/threadpool.hh"
 
 void tests::threadpool_tests() {
-	asterid::thread_pool tpt;
+	asterales::thread_pool tpt;
 	int i = 0;
 	
-	auto t1 = asterid::task_lambda<void>([&i](){ i += 1; });
+	auto t1 = asterales::task_lambda<void>([&i](){ i += 1; });
 	auto t1f = t1->get_future();
 	tpt.enqueue(std::move(t1));
 	
-	auto t2 = asterid::task_lambda<int>([&i](){ i += 1; return i; });
+	auto t2 = asterales::task_lambda<int>([&i](){ i += 1; return i; });
 	auto t2f = t2->get_future();
 	tpt.enqueue(std::move(t2));
 	

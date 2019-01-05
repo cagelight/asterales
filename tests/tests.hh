@@ -3,7 +3,7 @@
 #include <cassert>
 #include <string>
 
-#include "asterid/strop.hh"
+#include "asterales/strop.hh"
 
 #define TEST(cond) assert(cond)
 
@@ -35,5 +35,5 @@ namespace util {
 	};
 }
 
-#define tlog asterid::streamlogger {"", [](std::string const & str){ printf("%s\n", str.c_str()); }}
-#define tlogi asterid::streamlogger {"", [](std::string const & str){ printf("%s", str.c_str()); fflush(stdout); }}
+#define tlog asterales::streamlogger {"", [](std::string const & str){ printf("%s\n", str.c_str()); }}
+#define tlogi asterales::streamlogger {"", [](std::string const & str){ printf("%s", str.c_str()); fflush(stdout); }}

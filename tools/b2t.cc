@@ -1,4 +1,4 @@
-#include "asterid/aeon.hh"
+#include "asterales/aeon.hh"
 
 #include <cassert>
 #include <sys/stat.h>
@@ -17,13 +17,13 @@ int main(int argc, char * * argv) {
 		return 1;
 	}
 	FILE * aeon_in = fopen(argv[1], "rb");
-	asterid::buffer_assembly buf_in;
+	asterales::buffer_assembly buf_in;
 	buf_in.resize(aeon_stat.st_size);
 	size_t r = fread(buf_in.data(), aeon_stat.st_size, 1, aeon_in);
 	assert(r == 1);
 	fclose(aeon_in);
 	
-	asterid::aeon::object aeon_dat = asterid::aeon::parse_binary(buf_in);
+	asterales::aeon::object aeon_dat = asterales::aeon::parse_binary(buf_in);
 	
 	std::string buf_out = aeon_dat.serialize_text();
 	FILE * aeon_out = fopen(argv[2], "wb");

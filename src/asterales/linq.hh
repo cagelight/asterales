@@ -1,6 +1,6 @@
 #pragma once
 
-namespace asterid {
+namespace asterales {
 	
 	template <typename T, typename Ti = typename T::const_iterator> struct linq {
 		

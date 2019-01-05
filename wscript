@@ -21,7 +21,6 @@ def options(opt):
 def configure(ctx):
 	ctx.load("g++")
 	ctx.check(features='c cprogram', lib='pthread', uselib_store='PTHREAD')
-	ctx.check(features='c cprogram', lib='icuuc', uselib_store='ICU')
 	btup = ctx.options.build_type.upper()
 	if btup in ["DEBUG", "NATIVE", "RELEASE"]:
 		Logs.pprint("PINK", "Setting up environment for known build type: " + btup)
@@ -29,32 +28,28 @@ def configure(ctx):
 		ctx.env.CXXFLAGS = btype_cflags(ctx)
 		Logs.pprint("PINK", "CXXFLAGS: " + ' '.join(ctx.env.CXXFLAGS))
 		if btup == "DEBUG":
-			ctx.define("ASTERID_DEBUG", 1)
+			ctx.define("DEBUG", 1)
 	else:
 		Logs.error("UNKNOWN BUILD TYPE: " + btup)
 		
 def build(bld):
 	
-	bld_install_files = bld.path.ant_glob('src/asterid/*.hh')
-	bld.install_files('${PREFIX}/include/asterid', bld_install_files)
-	
-	bld_install_files = bld.path.ant_glob('src/asterid/third_party/*.hh')
-	bld.install_files('${PREFIX}/include/asterid/third_party', bld_install_files)
+	bld_install_files = bld.path.ant_glob('src/asterales/*.hh')
+	bld.install_files('${PREFIX}/include/asterales', bld_install_files)
 	
 	bld_files = bld.path.ant_glob('src/*.cc')
-	asterid = bld (
+	asterales = bld (
 		features = "cxx cxxshlib",
-		target = 'asterid',
+		target = 'asterales',
 		source = bld_files,
-		uselib = ['PTHREAD', 'ICU'],
+		uselib = ['PTHREAD'],
 	)
 	
 	b2t = bld (
 		features = "cxx cxxprogram",
 		target = 'aeon2json',
 		source = 'tools/b2t.cc',
-		uselib = ['PTHREAD'],
-		use = ['asterid'],
+		use = ['asterales'],
 		includes = [os.path.join(top, 'src')],
 	)
 	
@@ -62,16 +57,14 @@ def build(bld):
 		features = "cxx cxxprogram",
 		target = 'json2aeon',
 		source = 'tools/t2b.cc',
-		uselib = ['PTHREAD'],
-		use = ['asterid'],
+		use = ['asterales'],
 		includes = [os.path.join(top, 'src')],
 	)
 	
 	tests = bld(
 		features = "cxx cxxprogram",
-		target = 'asterid_tests',
+		target = 'asterales_tests',
 		source = bld.path.ant_glob('tests/*.cc'),
-		uselib = ['PTHREAD'],
-		use = ['asterid'],
+		use = ['asterales'],
 		includes = [os.path.join(top, 'src')],
 	)

@@ -9,7 +9,7 @@
 #include <thread>
 #include <vector>
 
-namespace asterid {
+namespace asterales {
 	
 	struct task_base {
 		virtual void execute() = 0;

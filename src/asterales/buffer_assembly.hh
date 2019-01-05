@@ -4,7 +4,7 @@
 #include <cstring>
 #include <string>
 
-namespace asterid {
+namespace asterales {
 	
 	struct buffer_assembly final {
 		typedef uint8_t byte_t;
