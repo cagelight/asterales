@@ -11,10 +11,50 @@ static std::uniform_int_distribution<size_t> dist (0, 8192);
 #define teststr "TEST TEST TEST TEST TEST TEST"
 #define teststrlen strlen(teststr)
 
-static constexpr size_t test_count = 5000000;
+static constexpr size_t test_count = 50000;
 #define TESTLOOP for (size_t i = 0; i < test_count; i++)
 
 static asterales::time::keeper<asterales::time::clock_type::thread> tk;
+
+struct some_other_object : public asterales::serializable {
+	uint16_t num1;
+	uint32_t num2;
+	
+	some_other_object() = default;
+	some_other_object(uint16_t n1, uint32_t n2) : num1(n1), num2(n2) {}
+	
+	virtual void serialize(asterales::serializer & buf) const override {
+		buf << num1 << num2;
+	}
+	
+	virtual void deserialize(asterales::serializer & buf) override {
+		buf >> num1 >> num2;
+	}
+};
+
+struct some_object : public asterales::serializable {
+	uint8_t num;
+	std::string str;
+	std::vector<some_other_object> vec;
+	
+	virtual void serialize(asterales::serializer & buf) const override {
+		buf << num << str;
+		buf.write_container<uint8_t>(vec);
+	}
+	
+	virtual void deserialize(asterales::serializer & buf) override {
+		buf >> num >> str;
+		buf.read_container<uint8_t>(vec);
+	}
+	
+	void print() {
+		tlog << "  " << num;
+		tlog << "  " << str;
+		tlogi << "  ";
+		for (some_other_object const & soo : vec) tlogi << "(" << soo.num1 << ", " << soo.num2 << ") ";
+		tlog << "\n";
+	}
+};
 
 void tests::buffer_assembly_tests() {
 	tlog << "STARTING BUFFER ASSEMBLY TESTS\n";
@@ -88,12 +128,13 @@ void tests::buffer_assembly_tests() {
 		TESTLOOP {
 			std::uniform_int_distribution<size_t> dist2 (0, teststrlen + 1);
 			buf.clear();
-			buf.write(teststr);
+			buf.write(teststr, teststrlen);
 			buf.shrink();
 			buf2.clear();
-			buf2.write(teststr);
+			buf2.write(teststr, teststrlen);
 			buf2.shrink();
 			buf2.transfer_to(buf, dist2(gen));
+			
 			TEST(buf.size() + buf2.size() == 2 * teststrlen);
 		}
 		auto tm = tk.mark();
@@ -124,5 +165,28 @@ void tests::buffer_assembly_tests() {
 		auto tm = tk.mark();
 		tlog << tm.sec() << " sec";
 	}
+	tlog << "SERIALIZATION: ";
+	{
+		std::uniform_int_distribution<uint8_t> dist8 (0, std::numeric_limits<uint8_t>::max());
+		std::uniform_int_distribution<uint16_t> dist16 (0, std::numeric_limits<uint16_t>::max());
+		std::uniform_int_distribution<uint32_t> dist32 (0, std::numeric_limits<uint32_t>::max());
+		
+		some_object so1, so2;
+		
+		tlog << "SERIALIZE IN:";
+		so1.num = dist8(gen);
+		so1.str = teststr;
+		for (size_t i = 0; i < 8; i++) so1.vec.emplace_back(dist16(gen), dist32(gen));
+		so1.print();
+		
+		asterales::serializer sobuf;
+		sobuf.write(so1);
+		tlog << "SERIALIZED HEX: " << sobuf.buffer.hex();
+		
+		tlog << "SERIALIZE OUT:";
+		so2.deserialize(sobuf);
+		so2.print();
+	}
+	
 	tlog << "\nBUFFER ASSEMBLY TESTS DONE";
 }

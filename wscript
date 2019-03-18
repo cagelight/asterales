@@ -29,6 +29,8 @@ def configure(ctx):
 		Logs.pprint("PINK", "CXXFLAGS: " + ' '.join(ctx.env.CXXFLAGS))
 		if btup == "DEBUG":
 			ctx.define("DEBUG", 1)
+		else:
+			ctx.define("NDEBUG", 1)
 	else:
 		Logs.error("UNKNOWN BUILD TYPE: " + btup)
 		
@@ -43,6 +45,7 @@ def build(bld):
 		target = 'asterales',
 		source = bld_files,
 		uselib = ['PTHREAD'],
+		vnum = '0.0.1'
 	)
 	
 	b2t = bld (

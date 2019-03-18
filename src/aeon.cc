@@ -292,7 +292,7 @@ aeon::object const & aeon::object::operator [] (aeon::str_t const & key) const {
 
 static std::string serialize_aeon_text_real(aeon::real_t v) {
 	std::ostringstream r {};
-	r.precision(std::numeric_limits<aeon::real_t>::max_digits10);
+	//r.precision(std::numeric_limits<aeon::real_t>::max_digits10);
 	r << v;
 	return r.str();
 }
@@ -675,7 +675,7 @@ static_assert (sizeof(varuint_header) == 1);
 static void serialize_varuint(buffer_assembly & buf, size_t v) {
 	varuint_header vh;
 	vh.set_value(v);
-	buf.write_unsafe<varuint_header>(vh);
+	buf.write(vh.small_value);
 	size_t nb = vh.get_num_bytes();
 	if (nb) { buf.write(v, nb); }
 }
@@ -712,7 +712,7 @@ static void serialize_aeon_binary_string(buffer_assembly & buf, aeon::str_t cons
 	} else {
 		buf.write(binary_type::string);
 		serialize_varuint(buf, str.size());
-		buf << str;
+		buf.write_many(str.data(), str.size());
 	}
 }
 
@@ -739,7 +739,7 @@ void aeon::object::serialize_binary(buffer_assembly & buf) const {
 				buf.write(binary_type::zero);
 			} else {
 				buf.write(binary_type::real64);
-				buf << data.num_real;
+				buf.write(data.num_real);
 			}
 			return;
 		case type::string:
@@ -764,7 +764,7 @@ void aeon::object::serialize_binary(buffer_assembly & buf) const {
 				serialize_varuint(buf, data.map->size());
 				for (auto const & [key, value] : *data.map) {
 					serialize_varuint(buf, key.size());
-					buf << key;
+					buf.write_many(key.data(), key.size());
 					value.serialize_binary(buf);
 				}
 			}
@@ -775,7 +775,7 @@ void aeon::object::serialize_binary(buffer_assembly & buf) const {
 			} else {
 				buf.write(binary_type::binary);
 				serialize_varuint(buf, data.bin->size());
-				buf << *data.bin;
+				buf.write_many(data.bin->data(), data.bin->size());
 			}
 			return;
 	}
@@ -788,7 +788,8 @@ void aeon::object::serialize_binary(buffer_assembly & buf) const {
 
 static size_t read_varuint(buffer_assembly & buf) {
 	pcheck(varuint_header);
-	varuint_header vh = buf.read_unsafe<varuint_header>();
+	varuint_header vh;
+	vh.small_value = buf.read<uint8_t>();
 	size_t num_bytes = vh.get_num_bytes();
 	if (!num_bytes) return vh.small_value;
 	else {
@@ -803,7 +804,7 @@ static aeon::str_t parse_aeon_binary_string(buffer_assembly & buf) {
 	std::string str;
 	str.resize(len);
 	ncheck(len);
-	buf.read(str.data(), len);
+	buf.read_many(str.data(), len);
 	return str;
 }
 

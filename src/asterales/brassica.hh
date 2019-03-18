@@ -55,7 +55,7 @@ namespace asterales::brassica {
 	
 	template <typename T> struct rect_t;
 	
-	template <typename T> struct quaternion_t;
+	template <typename T> struct quat_t;
 	
 	template <typename T> struct mat3_t;
 	template <typename T> struct mat4_t;
@@ -66,8 +66,9 @@ namespace asterales::brassica {
 	
 	template <typename T> struct vec2_t {
 		
-		typedef T length_t;
-		T data [2] {0, 0};
+		using value_type = T;
+		using data_type = std::array<T, 2>;
+		data_type data;
 		
 		constexpr T & x() { return data[0]; }
 		constexpr T & y() { return data[1]; }
@@ -79,11 +80,14 @@ namespace asterales::brassica {
 		constexpr T const & height() const { return data[1]; }
 		
 		constexpr vec2_t() = default;
+		constexpr vec2_t(data_type const & values) : data {values} {}
 		constexpr vec2_t(T x, T y) : data {x, y} {}
 		constexpr explicit vec2_t(T v) : data {v, v} {}
 		constexpr vec2_t(vec2_t const &) = default;
 		constexpr vec2_t(vec2_t &&) = default;
 		template <typename U> constexpr vec2_t(vec2_t<U> const & other) { data[0] = other.data[0]; data[1] = other.data[1]; }
+		
+		static constexpr vec2_t empty {0, 0};
 		
 		static constexpr T dot(vec2_t<T> const & A, vec2_t<T> const & B) {
 			return A.data[0] * B.data[0] + A.data[1] * B.data[1];
@@ -140,8 +144,10 @@ namespace asterales::brassica {
 	
 	template <typename T> struct vec3_t {
 		
-		typedef T length_t;
-		T data [3] {0, 0, 0};
+		using value_type = T;
+		using data_type = std::array<T, 3>;
+		data_type data;
+		
 		constexpr T & x() { return data[0]; }
 		constexpr T & y() { return data[1]; }
 		constexpr T & z() { return data[2]; }
@@ -162,12 +168,15 @@ namespace asterales::brassica {
 		constexpr T const & b() const { return data[2]; }
 		
 		constexpr vec3_t() = default;
+		constexpr vec3_t(data_type const & values) : data {values} {}
 		constexpr vec3_t(T x, T y, T z) : data {x, y, z} {}
 		constexpr explicit vec3_t(T v) : data {v, v, v} {}
 		constexpr vec3_t(vec3_t const &) = default;
 		constexpr vec3_t(vec3_t &&) = default;
 		template <typename U> constexpr vec3_t(vec3_t<U> const & other) { data[0] = other.data[0]; data[1] = other.data[1]; data[2] = other.data[2]; }
 		constexpr vec3_t(vec2_t<T> const & v, T z) : data {v.data[0], v.data[1], z} {}
+		
+		static constexpr vec3_t empty {0, 0, 0};
 		
 		static constexpr T dot(vec3_t<T> const & A, vec3_t<T> const & B) {
 			return A.data[0] * B.data[0] + A.data[1] * B.data[1] + A.data[2] * B.data[2];
@@ -282,8 +291,10 @@ namespace asterales::brassica {
 	
 	template <typename T> struct vec4_t {
 		
-		typedef T length_t;
-		T data [4] {0, 0, 0, 0};
+		using value_type = T;
+		using data_type = std::array<T, 4>;
+		data_type data;
+		
 		constexpr T & x() { return data[0]; }
 		constexpr T & y() { return data[1]; }
 		constexpr T & z() { return data[2]; }
@@ -302,12 +313,15 @@ namespace asterales::brassica {
 		constexpr T const & a() const { return data[3]; }
 		
 		constexpr vec4_t() = default;
+		constexpr vec4_t(data_type const & values) : data {values} {}
 		constexpr vec4_t(T x, T y, T z, T w) : data {x, y, z, w} {}
 		constexpr explicit vec4_t(T v) : data {v, v, v, v} {}
 		constexpr vec4_t(vec4_t const &) = default;
 		constexpr vec4_t(vec4_t &&) = default;
 		template <typename U> constexpr vec4_t(vec4_t<U> const & other) { data[0] = other.data[0]; data[1] = other.data[1]; data[2] = other.data[2]; data[3] = other.data[3]; }
 		constexpr vec4_t(vec3_t<T> const & v, T w) : data {v.data[0], v.data[1], v.data[2], w} {}
+		
+		static constexpr vec4_t empty {0, 0, 0, 0};
 		
 		static constexpr T dot(vec4_t<T> const & A, vec4_t<T> const & B) {
 			return A.data[0] * B.data[0] + A.data[1] * B.data[1] + A.data[2] * B.data[2] + A.data[3] * B.data[3];
@@ -383,41 +397,41 @@ namespace asterales::brassica {
 	
 	template <typename T> struct rect_t {
 		
-		typedef T length_t;
-		vec2_t<T> origin {};
-		vec2_t<T> extents {};
+		using value_type = T;
+		vec2_t<T> origin;
+		vec2_t<T> extents;
 		
-		inline T & x() { return origin.x(); }
-		inline T & y() { return origin.y(); }
-		inline T & width() { return extents.width(); }
-		inline T & height() { return extents.height(); }
-		inline T const & x() const { return origin.x(); }
-		inline T const & y() const { return origin.y(); }
-		inline T const & width() const { return extents.width(); }
-		inline T const & height() const { return extents.height(); }
-		inline T ratio() const { return width() / height(); }
+		constexpr T & x() { return origin.x(); }
+		constexpr T & y() { return origin.y(); }
+		constexpr T & width() { return extents.width(); }
+		constexpr T & height() { return extents.height(); }
+		constexpr T const & x() const { return origin.x(); }
+		constexpr T const & y() const { return origin.y(); }
+		constexpr T const & width() const { return extents.width(); }
+		constexpr T const & height() const { return extents.height(); }
+		constexpr T ratio() const { return width() / height(); }
 		
-		inline rect_t() = default;
-		inline rect_t(T width, T height) : extents(width, height) {}
-		inline rect_t(T x, T y, T width, T height) : origin(x, y), extents(width, height) {}
-		inline rect_t(vec2_t<T> const & extents) : extents(extents) {}
-		inline rect_t(vec2_t<T> const & origin, vec2_t<T> const & extents) : origin(origin), extents(extents) {}
-		inline rect_t(vec4_t<T> const & rect) : origin(rect[0], rect[1]), extents(rect[2], rect[3]) {}
-		inline rect_t(rect_t<T> const & other) = default;
-		inline rect_t(rect_t<T> && other) = default;
+		constexpr rect_t() = default;
+		constexpr rect_t(T width, T height) : extents(width, height) {}
+		constexpr rect_t(T x, T y, T width, T height) : origin(x, y), extents(width, height) {}
+		constexpr rect_t(vec2_t<T> const & extents) : extents(extents) {}
+		constexpr rect_t(vec2_t<T> const & origin, vec2_t<T> const & extents) : origin(origin), extents(extents) {}
+		constexpr rect_t(vec4_t<T> const & rect) : origin(rect[0], rect[1]), extents(rect[2], rect[3]) {}
+		constexpr rect_t(rect_t<T> const & other) = default;
+		constexpr rect_t(rect_t<T> && other) = default;
 		
-		inline void center_in_x(rect_t<T> const & c) {
+		constexpr void center_in_x(rect_t<T> const & c) {
 			origin[0] = c.origin[0] + c.extents[0] / static_cast<T>(2) - extents[0] / static_cast<T>(2);
 		}
-		inline void center_in_y(rect_t<T> const & c) {
+		constexpr void center_in_y(rect_t<T> const & c) {
 			origin[1] = c.origin[1] + c.extents[1] / static_cast<T>(2) - extents[1] / static_cast<T>(2);
 		}
-		inline void center_in(rect_t<T> const & c) {
+		constexpr void center_in(rect_t<T> const & c) {
 			center_in_x(c);
 			center_in_y(c);
 		}
 		
-		inline void fit_in(rect_t<T> const & c) {
+		constexpr void fit_in(rect_t<T> const & c) {
 			T fratio = ratio();
 			if (fratio > c.ratio()) {
 				extents[0] = c.width();
@@ -429,7 +443,7 @@ namespace asterales::brassica {
 			center_in(c);
 		}
 		
-		inline void bound_in_x(rect_t<T> const & c) {
+		constexpr void bound_in_x(rect_t<T> const & c) {
 			if (extents[0] < c.extents[0]) {
 				if (origin[0] < c.origin[0]) origin[0] = c.origin[0];
 				else if (origin[0] > c.origin[0] + c.extents[0] - extents[0]) origin[0] = c.origin[0] + c.extents[0] - extents[0];
@@ -440,7 +454,7 @@ namespace asterales::brassica {
 				origin[0] = c.origin[0];
 			}
 		}
-		inline void bound_in_y(rect_t<T> const & c) {
+		constexpr void bound_in_y(rect_t<T> const & c) {
 			if (extents[1] < c.extents[1]) {
 				if (origin[1] < c.origin[1]) origin[1] = c.origin[1];
 				else if (origin[1] > c.origin[1] + c.extents[1] - extents[1]) origin[1] = c.origin[1] + c.extents[1] - extents[1];
@@ -451,7 +465,7 @@ namespace asterales::brassica {
 				origin[1] = c.origin[1];
 			}
 		}
-		inline void bound_in(rect_t<T> const & c) {
+		constexpr void bound_in(rect_t<T> const & c) {
 			bound_in_x(c);
 			bound_in_y(c);
 		}
@@ -472,19 +486,19 @@ namespace asterales::brassica {
 		}
 		*/
 		
-		inline rect_t<T> & offset(vec2_t<T> const & v) { origin += v; return *this; }
-		inline rect_t<T> offsetted(vec2_t<T> const & v) const { return { origin + v, extents }; }
+		constexpr rect_t<T> & offset(vec2_t<T> const & v) { origin += v; return *this; }
+		constexpr rect_t<T> offsetted(vec2_t<T> const & v) const { return { origin + v, extents }; }
 		
-		inline rect_t<T> & scale(T const & v) { extents *= v; return *this; }
-		inline rect_t<T> scaled(T const & v) const { return {origin, extents * v}; }
+		constexpr rect_t<T> & scale(T const & v) { extents *= v; return *this; }
+		constexpr rect_t<T> scaled(T const & v) const { return {origin, extents * v}; }
 		
-		inline rect_t<T> & operator = (rect_t<T> const & other) = default;
-		inline bool operator == (rect_t<T> const & other) const { return origin == other.origin && extents = other.extents; }
+		constexpr rect_t<T> & operator = (rect_t<T> const & other) = default;
+		constexpr bool operator == (rect_t<T> const & other) const { return origin == other.origin && extents = other.extents; }
 		
-		template <typename U> rect_t<T> & operator = (rect_t<U> const & other) { origin = other.origin; extents = other.extents; return *this; }
+		template <typename U> constexpr rect_t<T> & operator = (rect_t<U> const & other) { origin = other.origin; extents = other.extents; return *this; }
 		
-		inline operator vec4_t<T> () const { return {origin[0], origin[1], extents[0], extents[1]}; }
-		template<typename U> inline operator vec4_t<U> () const { return { static_cast<U>(origin[0]), static_cast<U>(origin[1]), static_cast<U>(origin[2]), static_cast<U>(origin[3])}; }
+		constexpr operator vec4_t<T> () const { return {origin[0], origin[1], extents[0], extents[1]}; }
+		template<typename U> constexpr operator vec4_t<U> () const { return { static_cast<U>(origin[0]), static_cast<U>(origin[1]), static_cast<U>(origin[2]), static_cast<U>(origin[3])}; }
 		
 #if BRASSICA_PRINT_FUNCTIONS == 1
 		std::string to_string() const {
@@ -497,16 +511,21 @@ namespace asterales::brassica {
 //------------------------------------------------------------------------------------------------
 //================================================================================================
 	
-	template <typename T> struct quaternion_t {
-		T data [4] {0, 0, 0, 1};
+	template <typename T> struct quat_t {
+		
+		using value_type = T;
+		using data_type = std::array<T, 4>;
+		data_type data;
+		
 		constexpr T & x() { return data[0]; }
 		constexpr T & y() { return data[1]; }
 		constexpr T & z() { return data[2]; }
 		constexpr T & w() { return data[3]; }
 		
-		constexpr quaternion_t() = default;
-		quaternion_t(T const & x, T const & y, T const & z, T const & w) : data{x, y, z, w} { normalize(); }
-		quaternion_t(vec3_t<T> const & axis, T const & angle) {
+		constexpr quat_t() = default;
+		constexpr quat_t(data_type const & values) : data {values} {}
+		constexpr quat_t(T const & x, T const & y, T const & z, T const & w) : data{x, y, z, w} {}
+		quat_t(vec3_t<T> const & axis, T const & angle) {
 			T a = angle/2;
 			T s = std::sin(a);
 			data[0] = axis[0] * s;
@@ -515,18 +534,20 @@ namespace asterales::brassica {
 			data[3] = std::cos(a);
 			normalize();
 		}
-		constexpr quaternion_t(quaternion_t const &) = default;
-		constexpr quaternion_t(quaternion_t &&) = default;
+		constexpr quat_t(quat_t const &) = default;
+		constexpr quat_t(quat_t &&) = default;
+		
+		static constexpr quat_t identity {0, 0, 0, 1};
 		
 		// ================
 		// COMMON
 		// ================
 		
-		constexpr quaternion_t<T> conjugate() const {
+		constexpr quat_t<T> conjugate() const {
 			return {-data[0], -data[1], -data[2], data[3]};
 		}
 		
-		inline quaternion_t<T> reciprocal() const {
+		inline quat_t<T> reciprocal() const {
 			T m = norm();
 			return {-data[0] / m, -data[1] / m, -data[2] / m, data[3] / m};
 		}
@@ -539,7 +560,7 @@ namespace asterales::brassica {
 			return std::sqrt(product());
 		}
 		
-		inline quaternion_t<T> & normalize () {
+		inline quat_t<T> & normalize () {
 			T v = norm();
 			data[0] /= v;
 			data[1] /= v;
@@ -548,12 +569,12 @@ namespace asterales::brassica {
 			return *this;
 		}
 		
-		inline quaternion_t<T> normalized () const {
+		inline quat_t<T> normalized () const {
 			T v = norm();
 			return { data[0] / v, data[1] / v, data[2] / v, data[3] / v };
 		}
 		
-		inline bool is_null () const {
+		constexpr bool is_null () const {
 			return data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3] == 1;
 		}
 		
@@ -563,7 +584,7 @@ namespace asterales::brassica {
 		
 		// LIMITERS
 		
-		quaternion_t<T> range_limit_up(vec3_t<T> const & up_pre, T angle_lim, T lerp = static_cast<T>(1)) const {
+		quat_t<T> range_limit_up(vec3_t<T> const & up_pre, T angle_lim, T lerp = static_cast<T>(1)) const {
 			vec3_t<T> up_q = -up_pre * conjugate();
 			up_q.normalize();
 			T dot = vec3_t<T>::dot({0, 1, 0}, up_q);
@@ -573,12 +594,12 @@ namespace asterales::brassica {
 			if (angle > angle_lim) return {};
 			vec3_t<T> rotaxis = vec3_t<T>::cross({0, 1, 0}, up_q);
 			rotaxis.normalize();
-			return quaternion_t<T> { rotaxis, (angle_lim - angle) * lerp };
+			return quat_t<T> { rotaxis, (angle_lim - angle) * lerp };
 		}
 		
 		// SEEKERS
 		
-		quaternion_t<T> roll_up(vec3_t<T> const & up_pre, T lerp = static_cast<T>(1)) const {
+		quat_t<T> roll_up(vec3_t<T> const & up_pre, T lerp = static_cast<T>(1)) const {
 			
 			vec3_t<T> up_q = up_pre * conjugate();
 			up_q.normalize();
@@ -591,7 +612,7 @@ namespace asterales::brassica {
 			return vector_delta({0, 1, 0}, up, lerp);
 		}
 		
-		quaternion_t<T> look_at(vec3_t<T> const & origin, vec3_t<T> const & target, T lerp = static_cast<T>(1)) const {
+		quat_t<T> look_at(vec3_t<T> const & origin, vec3_t<T> const & target, T lerp = static_cast<T>(1)) const {
 			vec3_t<T> front_to = vec3_t<T> { target - origin } .normalized() * conjugate();
 			return vector_delta(vec3_t<T> { 0, 0, 1 }, front_to, lerp);
 		}
@@ -600,7 +621,7 @@ namespace asterales::brassica {
 		// GENERATORS
 		// ================
 		
-		static quaternion_t<T> vector_delta(vec3_t<T> from, vec3_t<T> to, T lerp = static_cast<T>(1)) {
+		static quat_t<T> vector_delta(vec3_t<T> from, vec3_t<T> to, T lerp = static_cast<T>(1)) {
 			
 			#if BRASSICA_INPUT_SANITIZING == 1
 			if (lerp < 0) lerp = 0;
@@ -610,18 +631,18 @@ namespace asterales::brassica {
 			T dot = vec3_t<T>::dot(to, from);
 			if (dot > 1) dot = 1;
 			if (dot < -1) dot = -1;
-			if (dot == 1) return quaternion_t<T> {0, 0, 0, 1};
-			if (dot == -1) return quaternion_t<T> {0, 0, 1, 0};
+			if (dot == 1) return quat_t<T> {0, 0, 0, 1};
+			if (dot == -1) return quat_t<T> {0, 0, 1, 0};
 			
 			T rot_val = std::acos(dot);
 			
 			vec3_t<T> rotaxis = vec3_t<T>::cross(to, from);
 			rotaxis.normalize();
 			
-			return quaternion_t<T> { rotaxis, rot_val * lerp };
+			return quat_t<T> { rotaxis, rot_val * lerp };
 		}
 		
-		static quaternion_t<T> look_at(vec3_t<T> const & origin, vec3_t<T> const & target, vec3_t<T> const & up_in) {
+		static quat_t<T> look_at(vec3_t<T> const & origin, vec3_t<T> const & target, vec3_t<T> const & up_in) {
 			vec3_t<T> front { target - origin };
 			front.normalize();
 			vec3_t<T> side = vec3_t<T>::cross(front, -up_in);
@@ -681,7 +702,7 @@ namespace asterales::brassica {
 		// STATIC ALGEBRA
 		// ================
 		
-		static inline quaternion_t<T> slerp (quaternion_t<T> const & A, quaternion_t<T> const & B, T value) {
+		static inline quat_t<T> slerp (quat_t<T> const & A, quat_t<T> const & B, T value) {
 			
 			#if BRASSICA_INPUT_SANITIZING == 1
 			if (value < 0) value = 0;
@@ -700,7 +721,7 @@ namespace asterales::brassica {
 			T vA = std::sin((static_cast<T>(1) - value) * angle) / sqi;
 			T vB = std::sin(value * angle) / sqi;
 			
-			quaternion_t<T> ret {
+			quat_t<T> ret {
 				A[0] * vA + B[0] * vB,
 				A[1] * vA + B[1] * vB,
 				A[2] * vA + B[2] * vB,
@@ -711,8 +732,8 @@ namespace asterales::brassica {
 			return ret;
 		}
 		
-		static quaternion_t<T> multiply(quaternion_t<T> const & A, quaternion_t<T> const & B) {
-			quaternion_t<T> ret {
+		static quat_t<T> multiply(quat_t<T> const & A, quat_t<T> const & B) {
+			quat_t<T> ret {
 				(A.data[3] * B.data[0] + A.data[0] * B.data[3] + A.data[1] * B.data[2] - A.data[2] * B.data[1]),
 				(A.data[3] * B.data[1] - A.data[0] * B.data[2] + A.data[1] * B.data[3] + A.data[2] * B.data[0]),
 				(A.data[3] * B.data[2] + A.data[0] * B.data[1] - A.data[1] * B.data[0] + A.data[2] * B.data[3]),
@@ -726,22 +747,22 @@ namespace asterales::brassica {
 		// OPERATORS
 		// ================
 		
-		constexpr quaternion_t<T> & operator = (quaternion_t<T> const & other) = default;
-		constexpr quaternion_t<T> & operator = (quaternion_t<T> && other) = default;
+		constexpr quat_t<T> & operator = (quat_t<T> const & other) = default;
+		constexpr quat_t<T> & operator = (quat_t<T> && other) = default;
 		
-		inline quaternion_t<T> operator * (quaternion_t<T> const & other) const {
-			return quaternion_t<T>::multiply(*this, other);
+		inline quat_t<T> operator * (quat_t<T> const & other) const {
+			return quat_t<T>::multiply(*this, other);
 		}
 		
-		inline quaternion_t<T> & operator *= (quaternion_t<T> const & other) {
-			*this = quaternion_t<T>::multiply(other, *this); // order is reversed specifically for *= because it makes more contextual sense
+		inline quat_t<T> & operator *= (quat_t<T> const & other) {
+			*this = quat_t<T>::multiply(other, *this); // order is reversed specifically for *= because it makes more contextual sense
 			return *this;
 		}
 		
 		constexpr T & operator [] (size_t i) { return data[i]; }
 		constexpr T const & operator [] (size_t i) const { return data[i]; }
 		
-		template <typename U> quaternion_t<T> & operator = (quaternion_t<U> const & other) {
+		template <typename U> quat_t<T> & operator = (quat_t<U> const & other) {
 			data[0] = other.data[0];
 			data[1] = other.data[1];
 			data[2] = other.data[2];
@@ -762,12 +783,19 @@ namespace asterales::brassica {
 //================================================================================================
 	
 	template <typename T> struct mat3_t {
-		T data [3][3] {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+		
+		using value_type = T;
+		using row_type = std::array<T, 3>;
+		using data_type = std::array<row_type, 3>;
+		data_type data;
 		
 		mat3_t() = default;
-		mat3_t(T v1, T v2, T v3, T v4, T v5, T v6, T v7, T v8, T v9) : data {{v1, v2, v3}, {v4, v5, v6}, {v7, v8, v9}} {}
+		constexpr mat3_t(data_type const & values) : data(values) {}
+		mat3_t(T v1, T v2, T v3, T v4, T v5, T v6, T v7, T v8, T v9) : data { row_type {v1, v2, v3}, row_type {v4, v5, v6}, row_type {v7, v8, v9}} {}
 		
-		explicit mat3_t(quaternion_t<T> const & v) {
+		static constexpr mat3_t identity { data_type { row_type {1, 0, 0}, row_type {0, 1, 0}, row_type {0, 0, 1}}};
+		
+		explicit mat3_t(quat_t<T> const & v) {
 			T sqx = v.data[0] * v.data[0];
 			T sqy = v.data[1] * v.data[1];
 			T sqz = v.data[2] * v.data[2];
@@ -907,8 +935,8 @@ namespace asterales::brassica {
 			return *this;
 		}
 		
-		inline T * operator [] (size_t i) { return data[i]; }
-		inline T const * operator [] (size_t i) const { return data[i]; }
+		inline row_type & operator [] (size_t i) { return data[i]; }
+		inline row_type const & operator [] (size_t i) const { return data[i]; }
 		
 		inline operator T const * () const { return &data[0][0]; }
 		
@@ -930,18 +958,24 @@ namespace asterales::brassica {
 #endif
 	};
 	
-	
 //================================================================================================
 //------------------------------------------------------------------------------------------------
 //================================================================================================
 	
 	template <typename T> struct mat4_t {
-		T data [4][4] {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
+		
+		using value_type = T;
+		using row_type = std::array<T, 4>;
+		using data_type = std::array<row_type, 4>;
+		data_type data;
 		
 		constexpr mat4_t() = default;
-		constexpr mat4_t(T v1, T v2, T v3, T v4, T v5, T v6, T v7, T v8, T v9, T v10, T v11, T v12, T v13, T v14, T v15, T v16) : data {{v1, v2, v3, v4}, {v5, v6, v7, v8}, {v9, v10, v11, v12}, {v13, v14, v15, v16}} {}
+		constexpr mat4_t(data_type const & values) : data(values) {}
+		constexpr mat4_t(T v1, T v2, T v3, T v4, T v5, T v6, T v7, T v8, T v9, T v10, T v11, T v12, T v13, T v14, T v15, T v16) : data { row_type {v1, v2, v3, v4}, row_type {v5, v6, v7, v8}, row_type {v9, v10, v11, v12}, row_type {v13, v14, v15, v16}} {}
 		
-		constexpr explicit mat4_t(quaternion_t<T> const & v) {
+		static constexpr mat4_t identity { data_type { row_type {1, 0, 0, 0}, row_type {0, 1, 0, 0}, row_type {0, 0, 1, 0}, row_type {0, 0, 0, 1}} };
+		
+		constexpr explicit mat4_t(quat_t<T> const & v) {
 			T sqx = v.data[0] * v.data[0];
 			T sqy = v.data[1] * v.data[1];
 			T sqz = v.data[2] * v.data[2];
@@ -1092,7 +1126,7 @@ namespace asterales::brassica {
 		}
 		
 		static constexpr mat4_t<T> multiply(mat4_t<T> const & A, mat4_t<T> const & B) {
-			mat4_t<T> mat;
+			mat4_t<T> mat {};
 			mat.data[0][0] = A.data[0][0] * B.data[0][0] + A.data[0][1] * B.data[1][0] + A.data[0][2] * B.data[2][0] + A.data[0][3] * B.data[3][0];
 			mat.data[0][1] = A.data[0][0] * B.data[0][1] + A.data[0][1] * B.data[1][1] + A.data[0][2] * B.data[2][1] + A.data[0][3] * B.data[3][1];
 			mat.data[0][2] = A.data[0][0] * B.data[0][2] + A.data[0][1] * B.data[1][2] + A.data[0][2] * B.data[2][2] + A.data[0][3] * B.data[3][2];
@@ -1144,8 +1178,8 @@ namespace asterales::brassica {
 			return *this;
 		}
 		
-		constexpr T * operator [] (size_t i) { return data[i]; }
-		constexpr T const * operator [] (size_t i) const { return data[i]; }
+		constexpr row_type & operator [] (size_t i) { return data[i]; }
+		constexpr row_type const & operator [] (size_t i) const { return data[i]; }
 		
 		constexpr operator T const * () const { return &data[0][0]; }
 		
@@ -1171,15 +1205,15 @@ namespace asterales::brassica {
 //------------------------------------------------------------------------------------------------
 //================================================================================================
 
-	template <typename T> inline vec3_t<T> operator * (quaternion_t<T> const & q, vec3_t<T> const & v) {
+	template <typename T> inline vec3_t<T> operator * (quat_t<T> const & q, vec3_t<T> const & v) {
 		vec3_t<T> qv {q[0], q[1], q[2]};
 		vec3_t<T> w1 = vec3_t<T>::cross(v, qv) * static_cast<T>(2);
 		return v + w1 * q[3] + vec3_t<T>::cross(w1, qv);
 	}
-	template <typename T> inline vec3_t<T> operator * (vec3_t<T> const & v, quaternion_t<T> const & q) {
+	template <typename T> inline vec3_t<T> operator * (vec3_t<T> const & v, quat_t<T> const & q) {
 		return q * v;
 	}
-	template <typename T> inline vec3_t<T> & operator *= (vec3_t<T> & v, quaternion_t<T> const & q) {
+	template <typename T> inline vec3_t<T> & operator *= (vec3_t<T> & v, quat_t<T> const & q) {
 		v = q * v;
 	}
 	
@@ -1311,6 +1345,26 @@ namespace asterales::brassica {
 //------------------------------------------------------------------------------------------------
 //================================================================================================
 
+#define BRASSICA_ASSERT_TEST_TYPE double
+
+// size asserts
+static_assert( sizeof(vec2_t<BRASSICA_ASSERT_TEST_TYPE>) == sizeof(BRASSICA_ASSERT_TEST_TYPE) * 2 );
+static_assert( sizeof(vec3_t<BRASSICA_ASSERT_TEST_TYPE>) == sizeof(BRASSICA_ASSERT_TEST_TYPE) * 3 );
+static_assert( sizeof(vec4_t<BRASSICA_ASSERT_TEST_TYPE>) == sizeof(BRASSICA_ASSERT_TEST_TYPE) * 4 );
+static_assert( sizeof(rect_t<BRASSICA_ASSERT_TEST_TYPE>) == sizeof(BRASSICA_ASSERT_TEST_TYPE) * 4 );
+static_assert( sizeof(quat_t<BRASSICA_ASSERT_TEST_TYPE>) == sizeof(BRASSICA_ASSERT_TEST_TYPE) * 4 );
+static_assert( sizeof(mat3_t<BRASSICA_ASSERT_TEST_TYPE>) == sizeof(BRASSICA_ASSERT_TEST_TYPE) * 9 );
+static_assert( sizeof(mat4_t<BRASSICA_ASSERT_TEST_TYPE>) == sizeof(BRASSICA_ASSERT_TEST_TYPE) * 16 );
+
+// POD asserts
+static_assert( std::is_pod<vec2_t<BRASSICA_ASSERT_TEST_TYPE>>() );
+static_assert( std::is_pod<vec3_t<BRASSICA_ASSERT_TEST_TYPE>>() );
+static_assert( std::is_pod<vec4_t<BRASSICA_ASSERT_TEST_TYPE>>() );
+static_assert( std::is_pod<rect_t<BRASSICA_ASSERT_TEST_TYPE>>() );
+static_assert( std::is_pod<quat_t<BRASSICA_ASSERT_TEST_TYPE>>() );
+static_assert( std::is_pod<mat3_t<BRASSICA_ASSERT_TEST_TYPE>>() );
+static_assert( std::is_pod<mat4_t<BRASSICA_ASSERT_TEST_TYPE>>() );
+
 }
 
 #if BRASSICA_PRINT_FUNCTIONS == 1
@@ -1327,7 +1381,7 @@ namespace std {
 	template <typename T> std::string to_string(asterales::brassica::rect_t<T> const & v) {
 		return v.to_string();
 	}
-	template <typename T> std::string to_string(asterales::brassica::quaternion_t<T> const & v) {
+	template <typename T> std::string to_string(asterales::brassica::quat_t<T> const & v) {
 		return v.to_string();
 	}
 	template <typename T> std::string to_string(asterales::brassica::mat3_t<T> const & v) {
@@ -1367,8 +1421,8 @@ namespace std {
 			return std::hash(v.origin) + std::hash(v.extents);
 		}
 	};
-	template <typename T> struct hash<asterales::brassica::quaternion_t<T>> {
-		size_t operator () (asterales::brassica::quaternion_t<T> const & v) const {
+	template <typename T> struct hash<asterales::brassica::quat_t<T>> {
+		size_t operator () (asterales::brassica::quat_t<T> const & v) const {
 			return std::hash(v[0]) + std::hash(v[1]) + std::hash(v[2]) + std::hash(v[3]);
 		}
 	};

@@ -128,7 +128,7 @@ namespace asterales {
 	// separate on element
 	// ================================
 	
-	template <typename T, typename V = std::vector<T>, typename TT = typename T::value_type, typename Ti = typename T::const_iterator> V separate (Ti const & a_b, Ti const & a_e, TT const & b_v, size_t num_sep = SIZE_MAX) {
+	template <typename T, typename V = std::vector<T>, typename TT = typename T::value_type, typename Ti = typename T::const_iterator> V separate (Ti const & a_b, Ti const & a_e, _asterales_non_deducible_t<TT> const & b_v, size_t num_sep = SIZE_MAX) {
 		V r {};
 		if (a_b == a_e) return r;
 		size_t cur_sep = 0;
@@ -152,7 +152,7 @@ namespace asterales {
 		return r;
 	}
 	
-	template <typename T, typename V = std::vector<T>, typename TT = typename T::value_type, typename Ti = typename T::const_iterator> V separate (T const & a, TT const & b_v, size_t num_sep = SIZE_MAX) {
+	template <typename T, typename V = std::vector<T>, typename TT = typename T::value_type, typename Ti = typename T::const_iterator> V separate (T const & a, _asterales_non_deducible_t<TT> const & b_v, size_t num_sep = SIZE_MAX) {
 		return separate<T, V, TT, Ti> (a.begin(), a.end(), b_v, num_sep);
 	}
 	
